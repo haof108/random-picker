@@ -20,6 +20,36 @@ body {
  color: white;
  overflow-x: hidden;
 }
+ 
+ @media (max-width: 600px) {
+
+    /* Nút tham gia & khung kết quả giữ cùng kích thước */
+    #confirmBtn, 
+    #resultBox {
+        width: 90% !important;
+        max-width: 90% !important;
+    }
+
+    #resultBox {
+        padding: 6px 20px !important;   /* thoáng hơn nhưng không tràn */
+        font-size: 20px !important;     /* vừa cho mọi tên kể cả dài */
+        text-align: center !important;
+
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+
+        white-space: normal !important; /* Cho text xuống dòng khi quá dài */
+        word-break: break-word !important; /* Ngăn tràn ra ngoài */
+    }
+
+    /* Icon pháo hoa co lại để phù hợp mobile */
+    #resultBox img {
+        width: 20px !important;
+        height: 20px !important;
+    }
+}
 @keyframes bgMove {
  0% { background-position: 0% 50%; }
  50% { background-position: 100% 50%; }
@@ -573,3 +603,4 @@ document.addEventListener('click',(e)=>{
 </body>
 
 </html>
+
