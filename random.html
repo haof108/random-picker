@@ -7,145 +7,114 @@
 <style>
 /* ----- BODY & BACKGROUND ----- */
 body {
- margin: 0;
- font-family: 'Poppins', sans-serif;
- background: linear-gradient(135deg, #8b5cf6, #2563eb, #ec4899);
- background-size: 400% 400%;
- animation: bgMove 12s ease infinite;
- min-height: 100vh;
- display: flex;
- flex-direction: column;
- align-items: center;
- padding-top: 30px;
- color: white;
- overflow-x: hidden;
-}
- 
- @media (max-width: 600px) {
-
-    /* Nút tham gia & khung kết quả giữ cùng kích thước */
-    #confirmBtn, 
-    #resultBox {
-        width: 90% !important;
-        max-width: 90% !important;
-    }
-
-    #resultBox {
-        padding: 6px 20px !important;   /* thoáng hơn nhưng không tràn */
-        font-size: 20px !important;     /* vừa cho mọi tên kể cả dài */
-        text-align: center !important;
-
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-
-        white-space: normal !important; /* Cho text xuống dòng khi quá dài */
-        word-break: break-word !important; /* Ngăn tràn ra ngoài */
-    }
-
-    /* Icon pháo hoa co lại để phù hợp mobile */
-    #resultBox img {
-        width: 20px !important;
-        height: 20px !important;
-    }
+margin: 0;
+font-family: 'Poppins', sans-serif;
+background: linear-gradient(135deg, #8b5cf6, #2563eb, #ec4899);
+background-size: 400% 400%;
+animation: bgMove 12s ease infinite;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+padding-top: 30px;
+color: white;
+overflow-x: hidden;
 }
 @keyframes bgMove {
- 0% { background-position: 0% 50%; }
- 50% { background-position: 100% 50%; }
- 100% { background-position: 0% 50%; }
+0% { background-position: 0% 50%; }
+50% { background-position: 100% 50%; }
+100% { background-position: 0% 50%; }
 }
 /* ----- RESPONSIVE ADMIN ----- */
 @media (max-width: 600px) {
- #adminBtns {
- flex-direction: column;
+#adminBtns {
+flex-direction: column;
 gap: 15px;
 margin-top: 20px;
- }
- #adminBtns button {
+}
+#adminBtns button {
 width: 80%;
- padding: 12px 0;
- font-size: 16px;
- }
- #selectAllContainer {
- text-align: center;
- margin-bottom: 15px;
+padding: 12px 0;font-size: 16px;
+}
+#selectAllContainer {
+text-align: center;
+margin-bottom: 15px;
 font-size: 14px;
- }
- #selectAllContainer input[type="checkbox"] {
- transform: scale(1.2);
- margin-right: 6px;
- }
+}
+#selectAllContainer input[type="checkbox"] {
+transform: scale(1.2);
+margin-right: 6px;
+}
 }
 
 /* ----- LOGIN OVERLAY ----- */
 #loginOverlay {
 position: fixed;
- top: 0; left: 0;
- width: 100%; height: 100%;
- background: rgba(0,0,0,0.6); display: flex;
- justify-content: center;
- align-items: center;
- z-index: 1000;
- backdrop-filter: blur(6px);
- animation: fadeIn 0.5s ease forwards;
+top: 0; left: 0;
+width: 100%; height: 100%;
+background: rgba(0,0,0,0.6); display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+backdrop-filter: blur(6px);
+animation: fadeIn 0.5s ease forwards;
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .loginBox {
- background: rgba(255,255,255,0.12);
- padding: 40px 50px;
- border-radius: 25px;
- box-shadow: 0 10px 30px rgba(0,0,0,0.6);
- text-align: center;
+background: rgba(255,255,255,0.12);
+padding: 40px 50px;
+border-radius: 25px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+text-align: center;
 color: white;
 min-width: 320px;
- max-width: 500px;
- width: 90%;
- animation: slideUp 0.5s ease forwards;
+max-width: 500px;
+width: 90%;
+animation: slideUp 0.5s ease forwards;
 }
 @keyframes slideUp { from { transform: translateY(50px); opacity:0; } to { transform: translateY(0); opacity:1; } }
 
 .loginBox h2 {
 margin-bottom: 25px;
- font-size: 28px;
- text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+font-size: 28px;
+text-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 
 .loginBox input,
 .loginBox button {
- width: 100%;
- padding: 14px 18px;
- border-radius: 12px;
- border: none;
- font-size: 18px;
- outline: none;
- box-shadow: inset 0 4px 10px rgba(0,0,0,0.2);
- background: rgba(255,255,255,0.2);
- color: white;
- margin-bottom: 20px;
- box-sizing: border-box;
+width: 100%;
+padding: 14px 18px;
+border-radius: 12px;
+border: none;
+font-size: 18px;
+outline: none;
+box-shadow: inset 0 4px 10px rgba(0,0,0,0.2);
+background: rgba(255,255,255,0.2);
+color: white;
+margin-bottom: 20px;
+box-sizing: border-box;
 }
 .loginBox button {
- background: linear-gradient(135deg, #8b5cf6, #6366f1);
- font-weight: bold;
- cursor: pointer;
- transition: 0.3s;
+background: linear-gradient(135deg, #8b5cf6, #6366f1);
+font-weight: bold;
+cursor: pointer;
+transition: 0.3s;
 }
 .loginBox button:hover {
- transform: scale(1.05);
- box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+transform: scale(1.05);
+box-shadow: 0 8px 20px rgba(0,0,0,0.45);
 }
 
 /* ----- GRID & CELLS ----- */
 h1 { font-size: 42px; font-weight: 700; margin-bottom: 10px; text-align: center; text-shadow: 0 4px 20px rgba(0,0,0,0.4);}
 .grid { display: grid; grid-template-columns: repeat(8, 150px); grid-auto-rows: 75px; gap: 18px; margin-top: 40px;}
 .cell {
- display: flex; justify-content: center; align-items: center;
- background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.4);
- border-radius: 15px; font-weight: 600; font-size: 18px; color: white;
- cursor: grab; transition: 0.25s; box-shadow: 0 6px 18px rgba(0,0,0,0.25);
- user-select: none;
+display: flex; justify-content: center; align-items: center;
+background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.4);
+border-radius: 15px; font-weight: 600; font-size: 18px; color: white;
+cursor: grab; transition: 0.25s; box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+user-select: none;
 }
 .cell.dragging { opacity: 0.5; transform: scale(1.05); cursor: grabbing; }
 .cell.empty { background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.3); cursor: pointer; }
@@ -159,12 +128,99 @@ button { padding: 14px 30px; border: none; border-radius: 15px; font-size: 18px;
 #resultBox.show { transform: translate(-50%, -50%) scale(1); opacity: 1;}
 canvas#fireworks { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 998;}
 #cancelBtn { padding:20px 40px; font-size:24px; border-radius:15px; background: linear-gradient(135deg, #f87171, #ef4444); color:white; font-weight:bold; cursor:pointer; margin-top:500px; display: none;}
+@media (max-width: 600px) {
 
+ /* Nút tham gia & khung kết quả giữ cùng kích thước */
+ #confirmBtn, 
+#resultBox {
+ width: 90% !important;
+ max-width: 90% !important;
+}
 
+#resultBox {
+padding: 6px 20px !important; /* thoáng hơn nhưng không tràn */
+font-size: 20px !important;  /* vừa cho mọi tên kể cả dài */
+text-align: center !important;
+
+ display: flex !important;
+ justify-content: center;
+ align-items: center;
+ gap: 8px;
+
+ white-space: normal !important; /* Cho text xuống dòng khi quá dài */
+ word-break: break-word !important; /* Ngăn tràn ra ngoài */
+ }
+
+ /* Icon pháo hoa co lại để phù hợp mobile */
+ #resultBox img {
+ width: 20px !important;
+height: 20px !important;
+}
+}
+
+@media (max-width: 400px) {
+ #confirmBtn, #resultBox {
+ max-width: 95%;
+ width: 95%;
+ }
+ #resultBox {
+padding: 2px 20px; /* Giảm padding trên dưới xuống 2px */
+ font-size: 18px; /* Giảm font size cho màn hình rất nhỏ */
+ }
+}
 /* ----- RESPONSIVE ----- */
 @media (max-width: 600px) {
- .grid { grid-template-columns: repeat(4, 45vw); grid-auto-rows: 20vw; gap: 10px; margin-top: 20px;}
- h1 { font-size: 32px; }
+.grid { grid-template-columns: repeat(4, 45vw); grid-auto-rows: 20vw; gap: 10px; margin-top: 20px;}
+h1 { font-size: 32px; }
+}
+/* ----- DANH SÁCH THAM GIA ADMIN ----- */
+#participantListContainer {
+ background-color: rgba(0, 0, 0, 0.2);
+ padding: 20px;
+ margin-top: 40px;
+ border-radius: 15px;
+color: white;
+ width: 90%;
+ max-width: 600px;
+ box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+#participantListContainer h2 {
+ margin-top: 0;
+ margin-bottom: 15px;
+ font-size: 24px;
+ border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+ padding-bottom: 10px;
+}
+
+#listControls {
+ margin-bottom: 15px;
+display: flex;
+ gap: 10px;
+ flex-wrap: wrap;
+}
+
+#listControls button {
+ padding: 8px 15px;
+ font-size: 14px;
+border-radius: 8px;
+ font-weight: 500;
+}
+
+#participantList {
+ list-style: none;
+ padding: 0;
+ max-height: 250px;
+ overflow-y: auto; /* Thêm thanh cuộn khi danh sách dài */
+ display: flex;
+ flex-wrap: wrap; /* Cho phép tên người tham gia nằm trên cùng một hàng và xuống dòng nếu cần */
+ gap: 8px;
+}
+
+#participantList li {
+ background-color: rgba(255, 255, 255, 0.1);
+ padding: 5px 10px; border-radius: 5px;
+ font-size: 16px;
 }
 </style>
 </head>
@@ -198,7 +254,15 @@ canvas#fireworks { position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
 <button id="confirmBtn">Tham gia</button>
 <button id="cancelBtn">Hủy tham gia</button>
 
-
+<div id="participantListContainer" style="display:none;">
+    <h2>Danh sách Tham gia (<span id="participantCount">0</span>)</h2>
+    <div id="listControls">
+        <button id="copyListBtn">📋 Copy Danh sách</button>
+        <button id="resetListBtn" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">Xóa Danh sách</button>
+    </div>
+    <ul id="participantList">
+        </ul>
+</div>
 <div id="resultBox"></div>
 <audio id="tickSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_7f4fb39984.mp3"></audio>
 
@@ -223,6 +287,14 @@ const resultBox = document.getElementById("resultBox");
 const tick = document.getElementById("tickSound");
 const adminControls = document.getElementById("adminControls");
 
+// KHAI BÁO BIẾN MỚI TẠI ĐÂY (Vị trí 1)
+const participantListContainer = document.getElementById('participantListContainer');
+const participantCount = document.getElementById('participantCount');
+const participantList = document.getElementById('participantList');
+const copyListBtn = document.getElementById('copyListBtn');
+const resetListBtn = document.getElementById('resetListBtn');
+// KẾT THÚC KHAI BÁO BIẾN MỚI
+
 let selected = [];
 let interval;
 let currentIndex = 0;
@@ -233,7 +305,7 @@ let hasJoined = false;
 const adminName = "backy";
 const SERVER_PORT = 3000;
 // THAY ĐỔI 'localhost' thành IP của máy Server Node.js nếu bạn chạy trên máy khác!
-const socket = io('https://random-picker-4eht.onrender.com');
+const socket = io(`https://random-picker-4eht.onrender.com`); 
 
 
 // ----- INIT VÀ LOGIN -----
@@ -248,69 +320,71 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 document.getElementById('loginBtn').addEventListener('click', () => {
-    const inputName = document.getElementById('usernameInput').value.trim();
-    const errorMsg = document.getElementById('loginError');
-    errorMsg.innerText = "";
+    const inputName = document.getElementById('usernameInput').value.trim();
+    const errorMsg = document.getElementById('loginError');
+    errorMsg.innerText = "";
 
-    if (!inputName) {
-        errorMsg.innerText = "⚠ Vui lòng nhập tên!";
-        return;
-    }
+    if (!inputName) {
+        errorMsg.innerText = "⚠ Vui lòng nhập tên!";
+        return;
+    }
 
-    let nextRole = '';
-    const userIndex = names.indexOf(inputName);
+    let nextRole = '';
+    const userIndex = names.indexOf(inputName);
 
-    // Xác định vai trò
-    if (inputName === adminName) {
-        nextRole = 'admin';
-    } else if (userIndex !== -1) { 
-        nextRole = 'user';
-    } else {
-        errorMsg.innerText = "⚠ Tên không tồn tại trong danh sách!";
-        return;
-    }
+    // Xác định vai trò
+    if (inputName === adminName) {
+        nextRole = 'admin';
+    } else if (userIndex !== -1) { 
+        nextRole = 'user';
+    } else {
+        errorMsg.innerText = "⚠ Tên không tồn tại trong danh sách!";
+        return;
+    }
 
-    // LƯU TRẠNG THÁI TẠM THỜI VÀ GỬI YÊU CẦU LÊN SERVER
-    username = inputName;
-    role = nextRole;
-    
-    // Gửi yêu cầu đăng nhập lên Server
-    socket.emit('client_login', { username: inputName, role: nextRole, index: userIndex });
+    // LƯU TRẠNG THÁI TẠM THỜI VÀ GỬI YÊU CẦU LÊN SERVER
+    username = inputName;
+    role = nextRole;
+    
+    // Gửi yêu cầu đăng nhập lên Server
+    socket.emit('client_login', { username: inputName, role: nextRole, index: userIndex });
 });
 
 // --- LẮNG NGHE PHẢN HỒI ĐĂNG NHẬP TỪ SERVER ---
 socket.on('login_status', (data) => {
-    const errorMsg = document.getElementById('loginError');
+    const errorMsg = document.getElementById('loginError');
 
-    if (data.success) {
-        // Đăng nhập thành công
-        errorMsg.innerText = "";
-        document.getElementById('loginOverlay').style.display = 'none';
+    if (data.success) {
+        // Đăng nhập thành công
+        errorMsg.innerText = "";
+        document.getElementById('loginOverlay').style.display = 'none';
 
-        if (role === 'admin') {
-            adminBtns.style.display = 'flex';
-            confirmBtn.style.display = 'none';
-            cancelBtn.style.display = 'none';
-            adminControls.style.display = 'flex';
-            renderGrid();
-        } else {
-            // Nếu là user, đồng bộ trạng thái tham gia ban đầu (sẽ được xử lý bởi 'initial_state')
-            adminBtns.style.display = 'none';
-            confirmBtn.style.display = 'flex';
-            // Không hiển thị confirmBtn/cancelBtn ở đây, chờ 'initial_state'
-        }
-    } else {
-        // Đăng nhập thất bại (do trùng lặp)
-        errorMsg.innerText = data.message;
-        // Reset trạng thái tạm thời
-        role = '';
-        username = '';
-    }
+        if (role === 'admin') {
+            adminBtns.style.display = 'flex';
+            confirmBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+            adminControls.style.display = 'flex';
+            renderGrid();
+            participantListContainer.style.display = 'block'; // FIX: Hiển thị ngay khi đăng nhập
+        } else {
+            // Nếu là user
+            adminBtns.style.display = 'none';
+            confirmBtn.style.display = 'flex';
+            participantListContainer.style.display = 'none'; // FIX: Ẩn với User
+        }
+    } else {
+        // Đăng nhập thất bại (do trùng lặp)
+        errorMsg.innerText = data.message;
+        // Reset trạng thái tạm thời
+        role = '';
+        username = '';
+    }
 });
 
 
 // ----- GRID & RENDER -----
 function createCell(name, idx, isEmpty=false){
+// ... (Hàm createCell giữ nguyên)
   const cell = document.createElement("div");
   cell.className = "cell";
   if(isEmpty) cell.classList.add('empty');
@@ -366,6 +440,7 @@ function createCell(name, idx, isEmpty=false){
 }
 
 function renderGrid(){
+// ... (Hàm renderGrid giữ nguyên)
   grid.innerHTML = '';
   let nameIndex = 0;
   for(let row=1; row<=6; row++){
@@ -391,9 +466,27 @@ function renderGrid(){
   }
 }
 
+// HÀM UPDATE DANH SÁCH MỚI (Vị trí 2)
+function updateParticipantList(participants) {
+    participantList.innerHTML = ''; // Xóa danh sách cũ
+    
+    if (participants.length === 0) {
+        participantList.innerHTML = '<li>Chưa có ai tham gia.</li>';
+    } else {
+        participants.forEach(p => {
+            const listItem = document.createElement('li');
+            listItem.innerText = p.username;
+            participantList.appendChild(listItem);
+        });
+    }
+    participantCount.innerText = participants.length;
+}
+// KẾT THÚC HÀM UPDATE DANH SÁCH MỚI
+
 
 // ----- ADMIN CONTROLS -----
 document.getElementById("startBtn")?.addEventListener('click', ()=>{
+// ... (Logic StartBtn giữ nguyên)
   if(!selected.length) return alert("Chọn ít nhất 1 người!");
   
   // Báo cho Server/User biết Admin bắt đầu quay
@@ -421,6 +514,7 @@ document.getElementById("startBtn")?.addEventListener('click', ()=>{
 });
 
 document.getElementById("stopBtn")?.addEventListener('click', ()=>{
+// ... (Logic StopBtn giữ nguyên)
   if(!selected.length) return alert("Chọn ít nhất 1 người!");
   
   clearInterval(interval);
@@ -448,6 +542,7 @@ document.getElementById("stopBtn")?.addEventListener('click', ()=>{
 
 const selectAllCheckbox = document.getElementById('selectAllCheckbox');
 selectAllCheckbox.addEventListener('change', () => {
+  // ... (Logic SelectAll giữ nguyên)
   if(!names.length || role !== 'admin') return;
   
   selected = [];
@@ -465,8 +560,45 @@ selectAllCheckbox.addEventListener('change', () => {
 });
 
 
+// ----- ADMIN LIST CONTROLS MỚI (Vị trí 3) -----
+// Nút Copy Danh sách
+copyListBtn.addEventListener('click', async () => {
+    // Lấy tất cả tên trong danh sách và tạo thành chuỗi, mỗi tên 1 dòng
+    const namesArray = Array.from(participantList.children)
+                             .map(li => li.innerText)
+                             .filter(name => name !== 'Chưa có ai tham gia.');
+    
+    if (namesArray.length === 0) {
+        alert("Danh sách trống!");
+        return;
+    }
+    
+    const listText = namesArray.join('\n');
+    
+    try {
+        await navigator.clipboard.writeText(listText);
+        copyListBtn.innerText = "Đã Copy! ✅";
+        setTimeout(() => { copyListBtn.innerText = "📋 Copy Danh sách"; }, 1500);
+    } catch (err) {
+        alert('Không thể Copy: ' + err);
+    }
+});
+
+// Nút Reset Danh sách Thủ công
+resetListBtn.addEventListener('click', () => {
+    if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ danh sách người tham gia không?")) {
+        return;
+    }
+    
+    // Gửi yêu cầu xóa danh sách lên Server
+    socket.emit('admin_reset_participants');
+});
+// KẾT THÚC ADMIN LIST CONTROLS MỚI
+
+
 // ----- USER CONTROLS -----
 confirmBtn?.addEventListener('click', ()=>{
+// ... (Logic User Join giữ nguyên)
   if(!username) return;
   const userIndex = names.indexOf(username);
   if(userIndex===-1) return;
@@ -481,6 +613,7 @@ confirmBtn?.addEventListener('click', ()=>{
 });
 
 cancelBtn?.addEventListener('click', ()=>{
+// ... (Logic User Cancel giữ nguyên)
   if(!hasJoined) return;
   const userIndex = names.indexOf(username);
   if(userIndex===-1) return;
@@ -510,12 +643,15 @@ socket.on('initial_state', (data) => {
             const cell = document.querySelector(`[data-index='${p.index}']`);
             if(cell) cell.classList.add('selected');
         });
+        participantListContainer.style.display = 'block'; // Hiển thị khung danh sách
+        updateParticipantList(data.participants);
     }
     // User: Cập nhật trạng thái nút Tham gia/Hủy
     if (role === 'user') {
         hasJoined = data.participants.some(p => p.username === username);
         confirmBtn.style.display = hasJoined ? 'none' : 'block';
         cancelBtn.style.display = hasJoined ? 'block' : 'none';
+        participantListContainer.style.display = 'none'; // Ẩn với User
     }
     // Nếu là Admin, phải render grid sau khi đăng nhập để tạo cell và event listener
     if (role === 'admin' && grid.innerHTML === '') renderGrid();
@@ -559,8 +695,17 @@ socket.on('client_stop_wheel', (winnerName) => {
     }
 });
 
+// 5. ADMIN: Nhận danh sách cập nhật từ Server (sau Join/Cancel/Reset/StopWheel) (Vị trí 4)
+socket.on('participant_update', (participants) => {
+    if (role === 'admin') {
+        updateParticipantList(participants);
+    }
+});
+
+
 // ----- FIREWORK -----
 function startFireworks(){
+// ... (Hàm Firework giữ nguyên)
   const canvas = document.getElementById("fireworks");
   const ctx = canvas.getContext("2d");
   canvas.width = innerWidth;
@@ -601,6 +746,4 @@ document.addEventListener('click',(e)=>{
 });
 </script>
 </body>
-
 </html>
-
