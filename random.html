@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vòng quay may mắn</title>
+<style>
+/* ----- BODY & BACKGROUND ----- */
+body {
+ margin: 0;
+ font-family: 'Poppins', sans-serif;
+ background: linear-gradient(135deg, #8b5cf6, #2563eb, #ec4899);
+ background-size: 400% 400%;
+ animation: bgMove 12s ease infinite;
+ min-height: 100vh;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ padding-top: 30px;
+ color: white;
+ overflow-x: hidden;
+}
+@keyframes bgMove {
+ 0% { background-position: 0% 50%; }
+ 50% { background-position: 100% 50%; }
+ 100% { background-position: 0% 50%; }
+}
+/* ----- RESPONSIVE ADMIN ----- */
+@media (max-width: 600px) {
+ #adminBtns {
+ flex-direction: column;
+gap: 15px;
+margin-top: 20px;
+ }
+ #adminBtns button {
+width: 80%;
+ padding: 12px 0;
+ font-size: 16px;
+ }
+ #selectAllContainer {
+ text-align: center;
+ margin-bottom: 15px;
+font-size: 14px;
+ }
+ #selectAllContainer input[type="checkbox"] {
+ transform: scale(1.2);
+ margin-right: 6px;
+ }
+}
+
+/* ----- LOGIN OVERLAY ----- */
+#loginOverlay {
+position: fixed;
+ top: 0; left: 0;
+ width: 100%; height: 100%;
+ background: rgba(0,0,0,0.6); display: flex;
+ justify-content: center;
+ align-items: center;
+ z-index: 1000;
+ backdrop-filter: blur(6px);
+ animation: fadeIn 0.5s ease forwards;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.loginBox {
+ background: rgba(255,255,255,0.12);
+ padding: 40px 50px;
+ border-radius: 25px;
+ box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+ text-align: center;
+color: white;
+min-width: 320px;
+ max-width: 500px;
+ width: 90%;
+ animation: slideUp 0.5s ease forwards;
+}
+@keyframes slideUp { from { transform: translateY(50px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+.loginBox h2 {
+margin-bottom: 25px;
+ font-size: 28px;
+ text-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+.loginBox input,
+.loginBox button {
+ width: 100%;
+ padding: 14px 18px;
+ border-radius: 12px;
+ border: none;
+ font-size: 18px;
+ outline: none;
+ box-shadow: inset 0 4px 10px rgba(0,0,0,0.2);
+ background: rgba(255,255,255,0.2);
+ color: white;
+ margin-bottom: 20px;
+ box-sizing: border-box;
+}
+.loginBox button {
+ background: linear-gradient(135deg, #8b5cf6, #6366f1);
+ font-weight: bold;
+ cursor: pointer;
+ transition: 0.3s;
+}
+.loginBox button:hover {
+ transform: scale(1.05);
+ box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+}
+
+/* ----- GRID & CELLS ----- */
+h1 { font-size: 42px; font-weight: 700; margin-bottom: 10px; text-align: center; text-shadow: 0 4px 20px rgba(0,0,0,0.4);}
+.grid { display: grid; grid-template-columns: repeat(8, 150px); grid-auto-rows: 75px; gap: 18px; margin-top: 40px;}
+.cell {
+ display: flex; justify-content: center; align-items: center;
+ background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.4);
+ border-radius: 15px; font-weight: 600; font-size: 18px; color: white;
+ cursor: grab; transition: 0.25s; box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+ user-select: none;
+}
+.cell.dragging { opacity: 0.5; transform: scale(1.05); cursor: grabbing; }
+.cell.empty { background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,255,255,0.3); cursor: pointer; }
+.selected { background: linear-gradient(135deg, #60a5fa, #2563eb); border-color: #ffffff; transform: scale(1.07); box-shadow: 0 0 20px #60a5fa; }
+.btn-area { margin-top: 40px; display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;}
+button { padding: 14px 30px; border: none; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.25s; color: white; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 6px 15px rgba(0,0,0,0.25);}
+#startBtn { background: linear-gradient(135deg, #8b5cf6, #6366f1);}
+#stopBtn { background: linear-gradient(135deg, #ec4899, #db2777);}
+#confirmBtn {justify-content: center;align-items: center; display: none; padding: 20px 40px; font-size: 28px; border: none; border-radius: 20px; background: linear-gradient(135deg, #facc15, #f59e0b); color: black; font-weight: bold; cursor: pointer; box-shadow: 0 6px 15px rgba(0,0,0,0.25); width: 80%; max-width: 400px; margin-top: 450px;}
+#resultBox { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; padding: 40px 60px; border-radius: 25px; box-shadow: 0 0 35px rgba(0,0,0,0.45); font-size: 40px; font-weight: 700; color: #2563eb; opacity: 0; transition: 0.35s ease; z-index: 999;}
+#resultBox.show { transform: translate(-50%, -50%) scale(1); opacity: 1;}
+canvas#fireworks { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 998;}
+#cancelBtn { padding:20px 40px; font-size:24px; border-radius:15px; background: linear-gradient(135deg, #f87171, #ef4444); color:white; font-weight:bold; cursor:pointer; margin-top:500px; display: none;}
+
+
+/* ----- RESPONSIVE ----- */
+@media (max-width: 600px) {
+ .grid { grid-template-columns: repeat(4, 45vw); grid-auto-rows: 20vw; gap: 10px; margin-top: 20px;}
+ h1 { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+
+<div id="loginOverlay">
+  <div class="loginBox">
+    <h2>Nhập tên của bạn</h2>
+    <input type="text" id="usernameInput" placeholder="Nhập tên..." />
+    <p id="loginError" style="color:#ffb4b4; font-size:14px; margin-top:-10px; height:18px;"></p>
+    <button id="loginBtn">Bắt đầu</button>
+  </div>
+</div>
+
+<canvas id="fireworks"></canvas>
+<h1>Vòng quay may mắn</h1>
+
+<div class="grid" id="grid"></div>
+
+<div class="btn-area" id="adminBtns">
+  <button id="startBtn">Bắt đầu</button>
+  <button id="stopBtn">Dừng</button>
+</div>
+<div id="adminControls" style="display:none; align-items:center; gap:10px; margin-top:20px;">
+  <input type="checkbox" id="selectAllCheckbox" />
+  <label for="selectAllCheckbox" style="color:white; font-weight:bold;">Chọn tất cả</label>
+</div>
+
+<button id="confirmBtn">Tham gia</button>
+<button id="cancelBtn">Hủy tham gia</button>
+
+
+<div id="resultBox"></div>
+<audio id="tickSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_7f4fb39984.mp3"></audio>
+
+<script>
+// ----- DANH SÁCH & CÀI ĐẶT -----
+const names = [
+"Trung Kiên","Gia Khang","Nam Nguyên","Bảo Ngọc","Hoàng Gia","Khánh Dung","Đan Lê","Minh Huy",
+"Quỳnh Như","Quang Nam","Phú Thịnh","Tấn Tài",
+"Văn Hào","Hoàng Anh","Hoàng Long","Gia Huy",
+"Gia Phúc","Diệu Minh","Công Trí","Minh Quân","Võ Gia Hân","Thu An","Phương Linh",
+"Thảo Hiền","Hoàng Phong","Hùng Minh",
+"Thúy Vy","Hoàng Phương","Gia Hân","Đức An","Anh Kiệt","Gia Hưng","Hoàng Nhi","Diễm My","Nam Trung","Khánh Quỳnh","Liên Giang",
+"Trâm Anh","Công Khoa","Nhật Huy","Thảo Nguyên","Hạnh Nghi","Bảo Trân",
+"Minh Thư","Anh Đức","Hồng Chuyên"
+];
+
+const grid = document.getElementById("grid");
+const adminBtns = document.getElementById("adminBtns");
+const confirmBtn = document.getElementById("confirmBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const resultBox = document.getElementById("resultBox");
+const tick = document.getElementById("tickSound");
+const adminControls = document.getElementById("adminControls");
+
+let selected = [];
+let interval;
+let currentIndex = 0;
+let role = '';
+let username = '';
+let hasJoined = false;
+
+const adminName = "backy";
+const SERVER_PORT = 3000;
+// THAY ĐỔI 'localhost' thành IP của máy Server Node.js nếu bạn chạy trên máy khác!
+const socket = io(`http://localhost:${SERVER_PORT}`); 
+
+
+// ----- INIT VÀ LOGIN -----
+window.addEventListener('DOMContentLoaded', () => {
+  // Đảm bảo màn hình đăng nhập hiện ra đầu tiên
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('usernameInput').value = '';
+  adminBtns.style.display = 'none';
+  confirmBtn.style.display = 'none';
+  cancelBtn.style.display = 'none';
+  adminControls.style.display = 'none';
+});
+
+document.getElementById('loginBtn').addEventListener('click', () => {
+    const inputName = document.getElementById('usernameInput').value.trim();
+    const errorMsg = document.getElementById('loginError');
+    errorMsg.innerText = "";
+
+    if (!inputName) {
+        errorMsg.innerText = "⚠ Vui lòng nhập tên!";
+        return;
+    }
+
+    let nextRole = '';
+    const userIndex = names.indexOf(inputName);
+
+    // Xác định vai trò
+    if (inputName === adminName) {
+        nextRole = 'admin';
+    } else if (userIndex !== -1) { 
+        nextRole = 'user';
+    } else {
+        errorMsg.innerText = "⚠ Tên không tồn tại trong danh sách!";
+        return;
+    }
+
+    // LƯU TRẠNG THÁI TẠM THỜI VÀ GỬI YÊU CẦU LÊN SERVER
+    username = inputName;
+    role = nextRole;
+    
+    // Gửi yêu cầu đăng nhập lên Server
+    socket.emit('client_login', { username: inputName, role: nextRole, index: userIndex });
+});
+
+// --- LẮNG NGHE PHẢN HỒI ĐĂNG NHẬP TỪ SERVER ---
+socket.on('login_status', (data) => {
+    const errorMsg = document.getElementById('loginError');
+
+    if (data.success) {
+        // Đăng nhập thành công
+        errorMsg.innerText = "";
+        document.getElementById('loginOverlay').style.display = 'none';
+
+        if (role === 'admin') {
+            adminBtns.style.display = 'flex';
+            confirmBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+            adminControls.style.display = 'flex';
+            renderGrid();
+        } else {
+            // Nếu là user, đồng bộ trạng thái tham gia ban đầu (sẽ được xử lý bởi 'initial_state')
+            adminBtns.style.display = 'none';
+            confirmBtn.style.display = 'flex';
+            // Không hiển thị confirmBtn/cancelBtn ở đây, chờ 'initial_state'
+        }
+    } else {
+        // Đăng nhập thất bại (do trùng lặp)
+        errorMsg.innerText = data.message;
+        // Reset trạng thái tạm thời
+        role = '';
+        username = '';
+    }
+});
+
+
+// ----- GRID & RENDER -----
+function createCell(name, idx, isEmpty=false){
+  const cell = document.createElement("div");
+  cell.className = "cell";
+  if(isEmpty) cell.classList.add('empty');
+  cell.innerText = name;
+  cell.dataset.index = idx;
+  cell.setAttribute('draggable', true);
+
+  // Logic Drag & Drop (Chỉ cho Admin)
+  if(role === 'admin') {
+    cell.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', idx);
+      cell.classList.add('dragging');
+    });
+    cell.addEventListener('dragend', () => cell.classList.remove('dragging'));
+    cell.addEventListener('dragover', e => e.preventDefault());
+    cell.addEventListener('drop', e => {
+      e.preventDefault();
+      const fromIndex = e.dataTransfer.getData('text');
+      const toIndex = idx;
+      if (fromIndex === toIndex) return;
+
+      const fromCell = document.querySelector(`[data-index='${fromIndex}']`);
+      const toCell = document.querySelector(`[data-index='${toIndex}']`);
+      const temp = fromCell.innerText;
+      fromCell.innerText = toCell.innerText;
+      toCell.innerText = temp;
+      [names[fromIndex], names[toIndex]] = [names[toIndex], names[fromIndex]];
+      // Sau khi swap, cần đồng bộ lại trạng thái selected cho đúng người
+      selected.forEach((s, i) => {
+        if (s == fromIndex) selected[i] = toIndex;
+        else if (s == toIndex) selected[i] = fromIndex;
+      });
+    });
+  }
+
+  if(!isEmpty && role==='admin'){
+    cell.addEventListener('click', ()=>{
+      cell.classList.toggle('selected');
+      
+      // Logic chọn/bỏ chọn
+      if (selected.includes(idx)) {
+        selected = selected.filter(x => x!==idx);
+      } else {
+        selected.push(idx);
+      }
+      // Bỏ chọn Select All nếu có cell bị bỏ chọn
+      if (document.getElementById('selectAllCheckbox').checked && !cell.classList.contains('selected')) {
+        document.getElementById('selectAllCheckbox').checked = false;
+      }
+    });
+  }
+  return cell;
+}
+
+function renderGrid(){
+  grid.innerHTML = '';
+  let nameIndex = 0;
+  for(let row=1; row<=6; row++){
+    for(let col=1; col<=8; col++){
+      let cell;
+      // Tạo 2 ô trống ở vị trí 1,5 và 1,6
+      if(row===1 && (col===5 || col===6)){
+        cell = createCell('', `empty-${row}-${col}`, true);
+      } else {
+        const name = names[nameIndex] || '';
+        cell = createCell(name, nameIndex);
+        nameIndex++;
+      }
+      grid.appendChild(cell);
+    }
+  }
+  // Sau khi render, áp dụng lại trạng thái selected (chỉ cho Admin)
+  if (role === 'admin') {
+    selected.forEach(idx => {
+      const cell = document.querySelector(`[data-index='${idx}']`);
+      if(cell) cell.classList.add('selected');
+    });
+  }
+}
+
+
+// ----- ADMIN CONTROLS -----
+document.getElementById("startBtn")?.addEventListener('click', ()=>{
+  if(!selected.length) return alert("Chọn ít nhất 1 người!");
+  
+  // Báo cho Server/User biết Admin bắt đầu quay
+  socket.emit('admin_start_wheel');
+
+  // Reset hộp kết quả
+  resultBox.classList.remove("show");
+
+  interval = setInterval(()=>{
+    // Loại bỏ lớp 'selected' ở ô trước
+    const oldIdx = selected[currentIndex === 0 ? selected.length-1 : currentIndex-1];
+    const oldCell = document.querySelector(`[data-index='${oldIdx}']`);
+    if(oldCell) oldCell.classList.remove("selected");
+
+    // Thêm lớp 'selected' ở ô hiện tại
+    const idx = selected[currentIndex];
+    const cell = document.querySelector(`[data-index='${idx}']`);
+    if(cell) cell.classList.add("selected");
+
+    tick.currentTime=0;
+    tick.play();
+
+    currentIndex=(currentIndex+1)%selected.length;
+  },50);
+});
+
+document.getElementById("stopBtn")?.addEventListener('click', ()=>{
+  if(!selected.length) return alert("Chọn ít nhất 1 người!");
+  
+  clearInterval(interval);
+  const winnerIndex = selected[currentIndex===0?selected.length-1:currentIndex-1];
+  const winnerName = names[winnerIndex];
+  
+  // Gửi kết quả chiến thắng đến Server
+  socket.emit('admin_stop_wheel', winnerName);
+
+  // Xử lý hiển thị kết quả cục bộ trên máy Admin
+  resultBox.innerText = "🎉 "+winnerName+" 🎉";
+  resultBox.classList.add("show");
+  startFireworks();
+
+  // >>> BỔ SUNG: LOẠI BỎ HIỆU ỨNG SELECTED TRÊN CÁC Ô TRÊN MÁY ADMIN
+  document.querySelectorAll('.cell').forEach(cell => {
+    cell.classList.remove('selected');
+  });
+  
+  // Reset trạng thái Admin
+  selected=[];
+  currentIndex=0;
+  document.getElementById('selectAllCheckbox').checked = false;
+});
+
+const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+selectAllCheckbox.addEventListener('change', () => {
+  if(!names.length || role !== 'admin') return;
+  
+  selected = [];
+  document.querySelectorAll('.cell').forEach((cell, idx) => {
+    // Chỉ chọn/bỏ chọn các ô có tên và không phải ô trống
+    if(cell.innerText.trim() && !cell.classList.contains('empty')){
+      if(selectAllCheckbox.checked){
+        cell.classList.add('selected');
+        selected.push(idx);
+      } else {
+        cell.classList.remove('selected');
+      }
+    }
+  });
+});
+
+
+// ----- USER CONTROLS -----
+confirmBtn?.addEventListener('click', ()=>{
+  if(!username) return;
+  const userIndex = names.indexOf(username);
+  if(userIndex===-1) return;
+  
+  // Gửi thông tin tham gia lên Server
+  socket.emit('user_join', {index:userIndex, username: username});
+  
+  
+  hasJoined = true;
+  confirmBtn.style.display = 'none';
+  cancelBtn.style.display = 'block';
+});
+
+cancelBtn?.addEventListener('click', ()=>{
+  if(!hasJoined) return;
+  const userIndex = names.indexOf(username);
+  if(userIndex===-1) return;
+
+  // Gửi thông tin hủy tham gia lên Server
+  socket.emit('user_cancel', {index:userIndex, username: username});
+  
+  
+  hasJoined = false;
+  confirmBtn.style.display = 'block';
+  cancelBtn.style.display = 'none';
+});
+
+
+// ----- SOCKET.IO LISTENERS (ĐỒNG BỘ HÓA) -----
+
+// 1. Nhận trạng thái ban đầu khi kết nối
+socket.on('initial_state', (data) => {
+    const allCells = document.querySelectorAll(".cell");
+    allCells.forEach(c=>c.classList.remove("selected"));
+
+    if (role === 'admin') {
+        selected = [];
+        // Hiển thị các ô đã được chọn trên giao diện Admin
+        data.participants.forEach(p => {
+            selected.push(p.index);
+            const cell = document.querySelector(`[data-index='${p.index}']`);
+            if(cell) cell.classList.add('selected');
+        });
+    }
+    // User: Cập nhật trạng thái nút Tham gia/Hủy
+    if (role === 'user') {
+        hasJoined = data.participants.some(p => p.username === username);
+        confirmBtn.style.display = hasJoined ? 'none' : 'block';
+        cancelBtn.style.display = hasJoined ? 'block' : 'none';
+    }
+    // Nếu là Admin, phải render grid sau khi đăng nhập để tạo cell và event listener
+    if (role === 'admin' && grid.innerHTML === '') renderGrid();
+});
+
+
+// 2. ADMIN: Nhận thông báo user tham gia từ server
+socket.on('client_update_join', (data) => {
+    if (role === 'admin') {
+        const idx = data.index;
+        if (!selected.includes(idx)) selected.push(idx);
+        const cell = document.querySelector(`[data-index='${idx}']`);
+        if(cell) cell.classList.add('selected');
+    }
+});
+
+// 3. ADMIN: Nhận thông báo user hủy từ server
+socket.on('client_update_cancel', (data) => {
+    if (role === 'admin') {
+        const idx = data.index;
+        selected = selected.filter(i => i !== idx);
+        const cell = document.querySelector(`[data-index='${idx}']`);
+        if(cell) cell.classList.remove('selected');
+    }
+});
+
+// 4. USER/ADMIN: Nhận kết quả và đồng bộ hóa hiển thị
+socket.on('client_stop_wheel', (winnerName) => {
+    // Dừng quay nếu đang quay
+    clearInterval(interval); 
+    
+    resultBox.innerText = "🎉 " + winnerName + " 🎉";
+    resultBox.classList.add("show");
+    startFireworks();
+
+    // Reset trạng thái tham gia cho User
+    if (role === 'user') {
+        hasJoined = false;
+        confirmBtn.style.display = 'block';
+        cancelBtn.style.display = 'none';
+    }
+});
+
+// ----- FIREWORK -----
+function startFireworks(){
+  const canvas = document.getElementById("fireworks");
+  const ctx = canvas.getContext("2d");
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+  const particles = [];
+  // (Giữ nguyên hàm createParticle và animate)
+  function createParticle(){
+    const p = {
+      x: canvas.width/2,
+      y: canvas.height/2,
+      radius: Math.random()*3+2,
+      color: `hsl(${Math.random()*360},100%,50%)`,
+      dx:(Math.random()-0.5)*8,
+      dy:(Math.random()-0.5)*8,
+      life:100
+    };
+    particles.push(p);
+  }
+  for(let i=0;i<120;i++) createParticle();
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach((p,i)=>{
+      p.x+=p.dx; p.y+=p.dy; p.life--;
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);
+      ctx.fill();
+      if(p.life<=0) particles.splice(i,1);
+    });
+    if(particles.length>0) requestAnimationFrame(animate);
+  }
+  animate();
+}
+// ----- CLICK NGOÀI ĐÓNG RESULT -----
+document.addEventListener('click',(e)=>{
+  if(resultBox.classList.contains('show') && !resultBox.contains(e.target) && e.target.id!=='stopBtn'){
+    resultBox.classList.remove('show');
+  }
+});
+</script>
+</body>
+</html>
