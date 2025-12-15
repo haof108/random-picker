@@ -458,21 +458,35 @@ function createCell(name, idx, isEmpty=false){
   }
 
   if(!isEmpty && role==='admin'){
-    cell.addEventListener('click', ()=>{
-      cell.classList.toggle('selected');
-     
-      // Logic chọn/bỏ chọn
-      if (selected.includes(idx)) {
-        selected = selected.filter(x => x!==idx);
-      } else {
+  cell.addEventListener('click', ()=>{
+    cell.classList.toggle('selected');
+
+    const idx = parseInt(cell.dataset.index);
+    if (idx < 0) return; // Bỏ qua nếu là ô trống (index âm)
+    const username = names[idx];
+
+    if (cell.classList.contains('selected')) {
+      // TỰ CẬP NHẬT NGAY ĐỂ MƯỢT
+      if (!selected.includes(idx)) {
         selected.push(idx);
       }
-      // Bỏ chọn Select All nếu có cell bị bỏ chọn
-      if (document.getElementById('selectAllCheckbox').checked && !cell.classList.contains('selected')) {
-        document.getElementById('selectAllCheckbox').checked = false;
-      }
-    });
-  }
+
+      // Gửi lên server để tính join + đồng bộ
+      socket.emit('admin_manual_join', {index: idx, username: username});
+    } else {
+      // TỰ CẬP NHẬT NGAY
+      selected = selected.filter(x => x !== idx);
+
+      // Gửi lên server để giảm join
+      socket.emit('admin_manual_cancel', {index: idx, username: username});
+    }
+
+    // Bỏ tick Select All nếu cần
+    if (document.getElementById('selectAllCheckbox').checked && !cell.classList.contains('selected')) {
+      document.getElementById('selectAllCheckbox').checked = false;
+    }
+  });
+}
   return cell;
 }
 
@@ -483,13 +497,16 @@ function renderGrid(){
     for(let col=1; col<=8; col++){
       let cell;
       // Tạo 2 ô trống ở vị trí 1,5 và 1,6
-      if(row===1 && (col===5 || col===6)){
-        cell = createCell('', `empty-${row}-${col}`, true);
-      } else {
-        const name = names[nameIndex] || '';
-        cell = createCell(name, nameIndex);
-        nameIndex++;
-      }
+     if(row===1 && (col===5 || col===6)){
+  // Dùng index số âm để phân biệt ô trống, tránh lỗi querySelector và parseInt
+  const emptyIndex = col === 5 ? -1 : -2;
+  cell = createCell('', emptyIndex, true);
+  cell.classList.add('empty'); // Giữ class empty
+}else {
+  const name = names[nameIndex] || '';
+  cell = createCell(name, nameIndex);
+  nameIndex++;
+}
       grid.appendChild(cell);
     }
   }
@@ -577,21 +594,31 @@ document.getElementById("stopBtn")?.addEventListener('click', ()=>{
 const selectAllCheckbox = document.getElementById('selectAllCheckbox');
 selectAllCheckbox.addEventListener('change', () => {
   if(!names.length || role !== 'admin') return;
- 
-  selected = [];
+
+  selected = []; // Reset mảng selected
+
   document.querySelectorAll('.cell').forEach((cell, idx) => {
-    // Chỉ chọn/bỏ chọn các ô có tên và không phải ô trống
-    if(cell.innerText.trim() && !cell.classList.contains('empty')){
-      if(selectAllCheckbox.checked){
+    const index = parseInt(cell.dataset.index);
+
+    // Chỉ xử lý ô có tên thật (index là số >= 0 và có nội dung)
+    if (!isNaN(index) && index >= 0 && cell.innerText.trim() && !cell.classList.contains('empty')) {
+      if (selectAllCheckbox.checked) {
         cell.classList.add('selected');
-        selected.push(idx);
+        selected.push(index);
+
+        // Gửi lên server để tính join +1 (mới thêm)
+        const username = names[index];
+        socket.emit('admin_manual_join', {index: index, username: username});
       } else {
         cell.classList.remove('selected');
+
+        // Gửi lên server để giảm join -1 (nếu trước đó đã join)
+        const username = names[index];
+        socket.emit('admin_manual_cancel', {index: index, username: username});
       }
     }
   });
 });
-
 
 // ----- ADMIN LIST CONTROLS MỚI (Vị trí 3) -----
 // Nút Copy Danh sách
@@ -824,4 +851,3 @@ socket.on('stats_data', (stats) => {
 </script>
 </body>
 </html>
-
