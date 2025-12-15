@@ -8,133 +8,155 @@ const server = http.createServer(app);
 const PORT = 3000;
 const adminName = "backy"; // Tên admin
 
-// Cấu hình CORS để cho phép kết nối từ trình duyệt (Client)
+// Cấu hình CORS
 const io = new Server(server, {
-    cors: {
-        origin: "*", 
-        methods: ["GET", "POST"]
-    }
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
 });
 
-// Trạng thái chung của ứng dụng
-let participants = []; // { index: 0, username: 'Tên' }
-let activeUsers = {}; // { username: socketId }
+// ================== TRẠNG THÁI CHUNG ==================
+let participants = []; // { index, username }
+let activeUsers = {};  // { username: socketId }
 
-// --- HÀM: HIỂN THỊ DANH SÁCH NGƯỜI DÙNG ĐANG ONLINE ---
+// ===== THỐNG KÊ (CHỈ CHẠY KHI ADMIN ONLINE) =====
+let stats = {}; 
+// stats = { username: { join: number, win: number } }
+let adminOnline = false;
+
+// --- HÀM HIỂN THỊ USER ONLINE ---
 function displayActiveUsers() {
-    const userList = Object.keys(activeUsers).map(username => {
-        return `  - ${username}`;
-    });
-
-    console.log('\n--- DANH SÁCH ONLINE HIỆN TẠI ---');
-    if (userList.length === 0) {
-        console.log('  (Không có người dùng nào đang online)');
-    } else {
-        console.log(`Tổng số: ${userList.length}`);
-        console.log(userList.join('\n'));
-    }
-    console.log('----------------------------------\n');
+    const userList = Object.keys(activeUsers).map(u => `  - ${u}`);
+    console.log('\n--- DANH SÁCH ONLINE ---');
+    if (userList.length === 0) console.log('  (Không có ai)');
+    else {
+        console.log(`Tổng số: ${userList.length}`);
+        console.log(userList.join('\n'));
+    }
+    console.log('------------------------\n');
 }
 
-// --- SOCKET.IO LOGIC ---
+// ================== SOCKET LOGIC ==================
 io.on('connection', (socket) => {
-    console.log(`[CONNECT] A client connected: ${socket.id}`);
-    
-    socket.emit('initial_state', { participants });
+    console.log(`[CONNECT] ${socket.id}`);
+    socket.emit('initial_state', { participants });
 
-    // Lắng nghe sự kiện ĐĂNG NHẬP từ Client (ĐÃ FIX LOGIC CHẶN)
-    socket.on('client_login', (data) => {
-        const { username, index, role } = data; 
-        
-        // 1. KIỂM TRA CHẶN ĐĂNG NHẬP TRÙNG LẶP
-        // Chỉ chặn nếu KHÔNG PHẢI ADMIN VÀ TÊN ĐÃ TỒN TẠI trong activeUsers
-        if (username !== adminName && activeUsers[username]) { 
-            // Tài khoản user ĐÃ online. KHÔNG CHO ĐĂNG NHẬP
-            console.log(`[BLOCKED] User ${username} (Socket: ${socket.id}) bị chặn do đã online.`);
-            
-            // Gửi thông báo thất bại về CHÍNH Client vừa cố gắng đăng nhập
-            socket.emit('login_status', { 
-                success: false, 
-                message: '❌ Tài khoản này đang được sử dụng trên thiết bị khác. Không thể đăng nhập.'
-            });
-            return; // Dừng xử lý
-        }
-        
-        // 2. ĐĂNG NHẬP THÀNH CÔNG (hoặc Admin)
-        // Nếu là Admin đăng nhập, ta sẽ ghi đè socket.id cũ, cho phép Admin mở nhiều tab.
-        activeUsers[username] = socket.id;
-        socket.data.username = username; // Lưu username vào dữ liệu socket
-        console.log(`[LOGIN] User: ${username} | Role: ${role} | Socket: ${socket.id}`);
+    // -------- LOGIN --------
+    socket.on('client_login', (data) => {
+        const { username, role } = data;
 
-        displayActiveUsers(); // Cập nhật Terminal
+        if (username !== adminName && activeUsers[username]) {
+            socket.emit('login_status', {
+                success: false,
+                message: '❌ Tài khoản đang online ở thiết bị khác'
+            });
+            return;
+        }
 
-        // Gửi thông báo thành công về CHÍNH Client vừa đăng nhập
-        socket.emit('login_status', { 
-            success: true, 
-            message: 'Đăng nhập thành công!'
-        });
-    });
+        activeUsers[username] = socket.id;
+        socket.data.username = username;
+        console.log(`[LOGIN] ${username} | ${socket.id}`);
+        displayActiveUsers();
 
+        // ===== ADMIN LOGIN → RESET STATS =====
+        if (username === adminName) {
+            adminOnline = true;
+            stats = {};
+            console.log('[STATS] Admin login → reset thống kê');
+        }
 
-    // Lắng nghe sự kiện tham gia/hủy/admin_stop_wheel/admin_reset
-    socket.on('user_join', (data) => {
-        if (!participants.some(p => p.username === data.username)) {
-            participants.push(data);
-            io.emit('client_update_join', data);
-            console.log(`[JOIN] ${data.username} joined. Total: ${participants.length}`);
-            // Phát thông báo cập nhật danh sách
-            io.emit('participant_update', participants); 
-        }
-    });
-
-    socket.on('user_cancel', (data) => {
-        participants = participants.filter(p => p.username !== data.username);
-        io.emit('client_update_cancel', data);
-        console.log(`[CANCEL] ${data.username} canceled. Total: ${participants.length}`);
-        // Phát thông báo cập nhật danh sách
-        io.emit('participant_update', participants); 
-    });
-
-    socket.on('admin_stop_wheel', (winnerName) => {
-        participants = []; 
-        io.emit('client_stop_wheel', winnerName);
-        console.log(`[RESULT] Winner is: ${winnerName}`);
-        // Phát thông báo cập nhật danh sách
-        io.emit('participant_update', participants); 
-    });
-    
-    socket.on('admin_start_wheel', () => {
-        console.log(`[WHEEL] Admin started the wheel.`);
-    });
-
-    socket.on('admin_reset_participants', () => {
-        participants = []; // Xóa danh sách
-        console.log(`[RESET] Admin manually reset the participant list.`);
-        // Phát thông báo đồng bộ hóa
-        io.emit('participant_update', participants); 
+        socket.emit('login_status', {
+            success: true,
+            message: 'Đăng nhập thành công!'
+        });
     });
 
-    // Xử lý khi Client ngắt kết nối
-    socket.on('disconnect', () => {
-        const disconnectedUsername = socket.data.username;
-
-        // Chỉ xóa khỏi activeUsers nếu socket.id khớp (quan trọng với Admin)
-        if (disconnectedUsername && activeUsers[disconnectedUsername] === socket.id) {
-            delete activeUsers[disconnectedUsername];
-            console.log(`[LOGOUT] User disconnected: ${disconnectedUsername}`);
-            
-            displayActiveUsers(); // Cập nhật Terminal
-
-            participants = participants.filter(p => p.username !== disconnectedUsername);
-            io.emit('client_update_cancel', { username: disconnectedUsername, index: -1 }); 
-            // Phát thông báo cập nhật danh sách
+    // -------- USER JOIN --------
+    socket.on('user_join', (data) => {
+        if (!participants.some(p => p.username === data.username)) {
+            participants.push(data);
+            io.emit('client_update_join', data);
             io.emit('participant_update', participants);
-        }
-    });
+            console.log(`[JOIN] ${data.username}`);
+
+            // ===== GHI THỐNG KÊ =====
+            if (adminOnline) {
+                if (!stats[data.username]) {
+                    stats[data.username] = { join: 0, win: 0 };
+                }
+                stats[data.username].join++;
+            }
+        }
+    });
+
+    // -------- USER CANCEL --------
+    socket.on('user_cancel', (data) => {
+        participants = participants.filter(p => p.username !== data.username);
+        io.emit('client_update_cancel', data);
+        io.emit('participant_update', participants);
+    });
+
+    // -------- STOP WHEEL --------
+    socket.on('admin_stop_wheel', (winnerName) => {
+        participants = [];
+        io.emit('client_stop_wheel', winnerName);
+        io.emit('participant_update', participants);
+        console.log(`[RESULT] Winner: ${winnerName}`);
+
+        // ===== GHI LẦN TRÚNG =====
+        if (adminOnline && stats[winnerName]) {
+            stats[winnerName].win++;
+        }
+    });
+
+    socket.on('admin_start_wheel', () => {
+        console.log('[WHEEL] Start');
+    });
+
+    socket.on('admin_reset_participants', () => {
+        participants = [];
+        io.emit('participant_update', participants);
+    });
+
+   // ===== ADMIN XEM STATS =====
+socket.on('admin_request_stats', () => {
+    console.log('[STATS REQUEST] Admin yêu cầu xem thống kê từ socket:', socket.id);
+    console.log('[ADMIN CHECK] Username hiện tại của socket:', socket.data.username);
+    console.log('[ADMIN NAME] So sánh với adminName:', adminName);
+    console.log('[CURRENT STATS] Dữ liệu hiện tại:', JSON.stringify(stats));
+    if (socket.data.username === adminName) {
+        socket.emit('stats_data', stats);
+        console.log('[STATS SENT] Đã gửi dữ liệu thống kê về client thành công');
+    } else {
+        console.log('[STATS DENIED] Không phải admin - Không gửi dữ liệu');
+    }
 });
 
-// Khởi động Server
+    // -------- DISCONNECT --------
+    socket.on('disconnect', () => {
+        const username = socket.data.username;
+
+        if (username && activeUsers[username] === socket.id) {
+            delete activeUsers[username];
+            console.log(`[LOGOUT] ${username}`);
+            displayActiveUsers();
+
+            participants = participants.filter(p => p.username !== username);
+            io.emit('participant_update', participants);
+
+            // ===== ADMIN LOGOUT → CLEAR STATS =====
+            if (username === adminName) {
+                adminOnline = false;
+                stats = {};
+                console.log('[STATS] Admin logout → clear thống kê');
+            }
+        }
+    });
+});
+
+// ================== START SERVER ==================
 server.listen(PORT, () => {
-    console.log(`✅ Server is running on http://localhost:${PORT}`);
-    displayActiveUsers(); 
+    console.log(`✅ Server running at http://localhost:${PORT}`);
+    displayActiveUsers();
 });
