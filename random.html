@@ -229,12 +229,12 @@ border-radius: 8px;
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 
 <div id="loginOverlay">
-  <div class="loginBox">
-    <h2>Nhập tên của bạn</h2>
-    <input type="text" id="usernameInput" placeholder="Nhập tên..." />
-    <p id="loginError" style="color:#ffb4b4; font-size:14px; margin-top:-10px; height:18px;"></p>
-    <button id="loginBtn">Bắt đầu</button>
-  </div>
+  <div class="loginBox">
+    <h2>Nhập tên của bạn</h2>
+    <input type="text" id="usernameInput" placeholder="Nhập tên..." />
+    <p id="loginError" style="color:#ffb4b4; font-size:14px; margin-top:-10px; height:18px;"></p>
+    <button id="loginBtn">Bắt đầu</button>
+  </div>
 </div>
 
 <canvas id="fireworks"></canvas>
@@ -243,25 +243,60 @@ border-radius: 8px;
 <div class="grid" id="grid"></div>
 
 <div class="btn-area" id="adminBtns">
-  <button id="startBtn">Bắt đầu</button>
-  <button id="stopBtn">Dừng</button>
+  <button id="startBtn">Bắt đầu</button>
+  <button id="stopBtn">Dừng</button>
 </div>
 <div id="adminControls" style="display:none; align-items:center; gap:10px; margin-top:20px;">
-  <input type="checkbox" id="selectAllCheckbox" />
-  <label for="selectAllCheckbox" style="color:white; font-weight:bold;">Chọn tất cả</label>
+  <input type="checkbox" id="selectAllCheckbox" />
+  <label for="selectAllCheckbox" style="color:white; font-weight:bold;">Chọn tất cả</label>
 </div>
 
 <button id="confirmBtn">Tham gia</button>
 <button id="cancelBtn">Hủy tham gia</button>
 
-<div id="participantListContainer" style="display:none;">
-    <h2>Danh sách Tham gia (<span id="participantCount">0</span>)</h2>
-    <div id="listControls">
-        <button id="copyListBtn">📋 Copy Danh sách</button>
-        <button id="resetListBtn" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">Xóa Danh sách</button>
-    </div>
-    <ul id="participantList">
-        </ul>
+<div id="participantListContainer" style="display:none;"><!-- ===== ADMIN STATS ===== -->
+<div id="statsBox" style="
+margin-top:25px;
+background:rgba(0,0,0,0.25);
+padding:20px;
+border-radius:15px;
+box-shadow:0 4px 15px rgba(0,0,0,0.3);
+">
+  <h2 style="margin-top:0;">📊 Thống kê trúng thưởng</h2>
+
+  <button id="loadStatsBtn"
+    style="
+    margin-bottom:15px;
+    padding:10px 18px;
+    border-radius:10px;
+    border:none;
+    font-weight:bold;
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    color:white;
+    cursor:pointer;">
+    Xem thống kê
+  </button>
+
+  <table style="width:100%;border-collapse:collapse;text-align:center;">
+    <thead>
+      <tr style="background:rgba(255,255,255,0.15);">
+        <th>Tên</th>
+        <th>Tham gia</th>
+        <th>Trúng</th>
+        <th>%</th>
+      </tr>
+    </thead>
+    <tbody id="statsTableBody"></tbody>
+  </table>
+</div>
+
+    <h2>Danh sách Tham gia (<span id="participantCount">0</span>)</h2>
+    <div id="listControls">
+        <button id="copyListBtn">📋 Copy Danh sách</button>
+        <button id="resetListBtn" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">Xóa Danh sách</button>
+    </div>
+    <ul id="participantList">
+        </ul>
 </div>
 <div id="resultBox"></div>
 <audio id="tickSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_7f4fb39984.mp3"></audio>
@@ -305,326 +340,322 @@ let hasJoined = false;
 const adminName = "backy";
 const SERVER_PORT = 3000;
 // THAY ĐỔI 'localhost' thành IP của máy Server Node.js nếu bạn chạy trên máy khác!
-const socket = io(`https://random-picker-4eht.onrender.com`); 
+const socket = io(``https://random-picker-4eht.onrender.com``); 
 
 
 // ----- INIT VÀ LOGIN -----
 window.addEventListener('DOMContentLoaded', () => {
-  // Đảm bảo màn hình đăng nhập hiện ra đầu tiên
-  document.getElementById('loginOverlay').style.display = 'flex';
-  document.getElementById('usernameInput').value = '';
-  adminBtns.style.display = 'none';
-  confirmBtn.style.display = 'none';
-  cancelBtn.style.display = 'none';
-  adminControls.style.display = 'none';
+  // Đảm bảo màn hình đăng nhập hiện ra đầu tiên
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('usernameInput').value = '';
+  adminBtns.style.display = 'none';
+  confirmBtn.style.display = 'none';
+  cancelBtn.style.display = 'none';
+  adminControls.style.display = 'none';
 });
 
 document.getElementById('loginBtn').addEventListener('click', () => {
-    const inputName = document.getElementById('usernameInput').value.trim();
-    const errorMsg = document.getElementById('loginError');
-    errorMsg.innerText = "";
+    const inputName = document.getElementById('usernameInput').value.trim();
+    const errorMsg = document.getElementById('loginError');
+    errorMsg.innerText = "";
 
-    if (!inputName) {
-        errorMsg.innerText = "⚠ Vui lòng nhập tên!";
-        return;
-    }
+    if (!inputName) {
+        errorMsg.innerText = "⚠ Vui lòng nhập tên!";
+        return;
+    }
 
-    let nextRole = '';
-    const userIndex = names.indexOf(inputName);
+    let nextRole = '';
+    const userIndex = names.indexOf(inputName);
 
-    // Xác định vai trò
-    if (inputName === adminName) {
-        nextRole = 'admin';
-    } else if (userIndex !== -1) { 
-        nextRole = 'user';
-    } else {
-        errorMsg.innerText = "⚠ Tên không tồn tại trong danh sách!";
-        return;
-    }
+    // Xác định vai trò
+    if (inputName === adminName) {
+        nextRole = 'admin';
+    } else if (userIndex !== -1) { 
+        nextRole = 'user';
+    } else {
+        errorMsg.innerText = "⚠ Tên không tồn tại trong danh sách!";
+        return;
+    }
 
-    // LƯU TRẠNG THÁI TẠM THỜI VÀ GỬI YÊU CẦU LÊN SERVER
-    username = inputName;
-    role = nextRole;
-    
-    // Gửi yêu cầu đăng nhập lên Server
-    socket.emit('client_login', { username: inputName, role: nextRole, index: userIndex });
+    // LƯU TRẠNG THÁI TẠM THỜI VÀ GỬI YÊU CẦU LÊN SERVER
+    username = inputName;
+    role = nextRole;
+   
+    // Gửi yêu cầu đăng nhập lên Server
+    socket.emit('client_login', { username: inputName, role: nextRole, index: userIndex });
 });
 
 // --- LẮNG NGHE PHẢN HỒI ĐĂNG NHẬP TỪ SERVER ---
 socket.on('login_status', (data) => {
-    const errorMsg = document.getElementById('loginError');
+    const errorMsg = document.getElementById('loginError');
 
-    if (data.success) {
-        // Đăng nhập thành công
-        errorMsg.innerText = "";
-        document.getElementById('loginOverlay').style.display = 'none';
+    if (data.success) {
+        // Đăng nhập thành công
+        errorMsg.innerText = "";
+        document.getElementById('loginOverlay').style.display = 'none';
 
-        if (role === 'admin') {
-            adminBtns.style.display = 'flex';
-            confirmBtn.style.display = 'none';
-            cancelBtn.style.display = 'none';
-            adminControls.style.display = 'flex';
-            renderGrid();
-            participantListContainer.style.display = 'block'; // FIX: Hiển thị ngay khi đăng nhập
-        } else {
-            // Nếu là user
-            adminBtns.style.display = 'none';
-            confirmBtn.style.display = 'flex';
-            participantListContainer.style.display = 'none'; // FIX: Ẩn với User
-        }
-    } else {
-        // Đăng nhập thất bại (do trùng lặp)
-        errorMsg.innerText = data.message;
-        // Reset trạng thái tạm thời
-        role = '';
-        username = '';
-    }
+        if (role === 'admin') {
+            adminBtns.style.display = 'flex';
+            confirmBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+            adminControls.style.display = 'flex';
+            renderGrid();
+            participantListContainer.style.display = 'block'; 
+            document.getElementById('statsBox').style.display = 'block'; // <<< ĐÃ THÊM DÒNG NÀY ĐỂ HIỆN THỐNG KÊ
+
+        } else {
+            // Nếu là user
+            adminBtns.style.display = 'none';
+            confirmBtn.style.display = 'flex';
+            participantListContainer.style.display = 'none'; // Ẩn với User
+        }
+    } else {
+        // Đăng nhập thất bại (do trùng lặp)
+        errorMsg.innerText = data.message;
+        // Reset trạng thái tạm thời
+        role = '';
+        username = '';
+    }
 });
 
 
 // ----- GRID & RENDER -----
 function createCell(name, idx, isEmpty=false){
-// ... (Hàm createCell giữ nguyên)
-  const cell = document.createElement("div");
-  cell.className = "cell";
-  if(isEmpty) cell.classList.add('empty');
-  cell.innerText = name;
-  cell.dataset.index = idx;
-  cell.setAttribute('draggable', true);
+  const cell = document.createElement("div");
+  cell.className = "cell";
+  if(isEmpty) cell.classList.add('empty');
+  cell.innerText = name;
+  cell.dataset.index = idx;
+  cell.setAttribute('draggable', true);
 
-  // Logic Drag & Drop (Chỉ cho Admin)
-  if(role === 'admin') {
-    cell.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('text/plain', idx);
-      cell.classList.add('dragging');
-    });
-    cell.addEventListener('dragend', () => cell.classList.remove('dragging'));
-    cell.addEventListener('dragover', e => e.preventDefault());
-    cell.addEventListener('drop', e => {
-      e.preventDefault();
-      const fromIndex = e.dataTransfer.getData('text');
-      const toIndex = idx;
-      if (fromIndex === toIndex) return;
+  // Logic Drag & Drop (Chỉ cho Admin)
+  if(role === 'admin') {
+    cell.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', idx);
+      cell.classList.add('dragging');
+    });
 
-      const fromCell = document.querySelector(`[data-index='${fromIndex}']`);
-      const toCell = document.querySelector(`[data-index='${toIndex}']`);
-      const temp = fromCell.innerText;
-      fromCell.innerText = toCell.innerText;
-      toCell.innerText = temp;
-      [names[fromIndex], names[toIndex]] = [names[toIndex], names[fromIndex]];
-      // Sau khi swap, cần đồng bộ lại trạng thái selected cho đúng người
-      selected.forEach((s, i) => {
-        if (s == fromIndex) selected[i] = toIndex;
-        else if (s == toIndex) selected[i] = fromIndex;
-      });
-    });
-  }
+    cell.addEventListener('dragend', () => cell.classList.remove('dragging'));
+    cell.addEventListener('dragover', e => e.preventDefault());
+    cell.addEventListener('drop', e => {
+      e.preventDefault();
+      const fromIndex = e.dataTransfer.getData('text');
+      const toIndex = idx;
+      if (fromIndex === toIndex) return;
 
-  if(!isEmpty && role==='admin'){
-    cell.addEventListener('click', ()=>{
-      cell.classList.toggle('selected');
-      
-      // Logic chọn/bỏ chọn
-      if (selected.includes(idx)) {
-        selected = selected.filter(x => x!==idx);
-      } else {
-        selected.push(idx);
-      }
-      // Bỏ chọn Select All nếu có cell bị bỏ chọn
-      if (document.getElementById('selectAllCheckbox').checked && !cell.classList.contains('selected')) {
-        document.getElementById('selectAllCheckbox').checked = false;
-      }
-    });
-  }
-  return cell;
+      const fromCell = document.querySelector(`[data-index='${fromIndex}']`);
+      const toCell = document.querySelector(`[data-index='${toIndex}']`);
+      const temp = fromCell.innerText;
+      fromCell.innerText = toCell.innerText;
+      toCell.innerText = temp;
+      [names[fromIndex], names[toIndex]] = [names[toIndex], names[fromIndex]];
+      // Sau khi swap, cần đồng bộ lại trạng thái selected cho đúng người
+      selected.forEach((s, i) => {
+        if (s == fromIndex) selected[i] = toIndex;
+        else if (s == toIndex) selected[i] = fromIndex;
+      });
+    });
+  }
+
+  if(!isEmpty && role==='admin'){
+    cell.addEventListener('click', ()=>{
+      cell.classList.toggle('selected');
+     
+      // Logic chọn/bỏ chọn
+      if (selected.includes(idx)) {
+        selected = selected.filter(x => x!==idx);
+      } else {
+        selected.push(idx);
+      }
+      // Bỏ chọn Select All nếu có cell bị bỏ chọn
+      if (document.getElementById('selectAllCheckbox').checked && !cell.classList.contains('selected')) {
+        document.getElementById('selectAllCheckbox').checked = false;
+      }
+    });
+  }
+  return cell;
 }
 
 function renderGrid(){
-// ... (Hàm renderGrid giữ nguyên)
-  grid.innerHTML = '';
-  let nameIndex = 0;
-  for(let row=1; row<=6; row++){
-    for(let col=1; col<=8; col++){
-      let cell;
-      // Tạo 2 ô trống ở vị trí 1,5 và 1,6
-      if(row===1 && (col===5 || col===6)){
-        cell = createCell('', `empty-${row}-${col}`, true);
-      } else {
-        const name = names[nameIndex] || '';
-        cell = createCell(name, nameIndex);
-        nameIndex++;
-      }
-      grid.appendChild(cell);
-    }
-  }
-  // Sau khi render, áp dụng lại trạng thái selected (chỉ cho Admin)
-  if (role === 'admin') {
-    selected.forEach(idx => {
-      const cell = document.querySelector(`[data-index='${idx}']`);
-      if(cell) cell.classList.add('selected');
-    });
-  }
+  grid.innerHTML = '';
+  let nameIndex = 0;
+  for(let row=1; row<=6; row++){
+    for(let col=1; col<=8; col++){
+      let cell;
+      // Tạo 2 ô trống ở vị trí 1,5 và 1,6
+      if(row===1 && (col===5 || col===6)){
+        cell = createCell('', `empty-${row}-${col}`, true);
+      } else {
+        const name = names[nameIndex] || '';
+        cell = createCell(name, nameIndex);
+        nameIndex++;
+      }
+      grid.appendChild(cell);
+    }
+  }
+  // Sau khi render, áp dụng lại trạng thái selected (chỉ cho Admin)
+  if (role === 'admin') {
+    selected.forEach(idx => {
+      const cell = document.querySelector(`[data-index='${idx}']`);
+      if(cell) cell.classList.add('selected');
+    });
+  }
 }
 
 // HÀM UPDATE DANH SÁCH MỚI (Vị trí 2)
 function updateParticipantList(participants) {
-    participantList.innerHTML = ''; // Xóa danh sách cũ
-    
-    if (participants.length === 0) {
-        participantList.innerHTML = '<li>Chưa có ai tham gia.</li>';
-    } else {
-        participants.forEach(p => {
-            const listItem = document.createElement('li');
-            listItem.innerText = p.username;
-            participantList.appendChild(listItem);
-        });
-    }
-    participantCount.innerText = participants.length;
+    participantList.innerHTML = ''; // Xóa danh sách cũ
+   
+    if (participants.length === 0) {
+        participantList.innerHTML = '<li>Chưa có ai tham gia.</li>';
+    } else {
+        participants.forEach(p => {
+            const listItem = document.createElement('li');
+            listItem.innerText = p.username;
+            participantList.appendChild(listItem);
+        });
+    }
+    participantCount.innerText = participants.length;
 }
 // KẾT THÚC HÀM UPDATE DANH SÁCH MỚI
 
 
 // ----- ADMIN CONTROLS -----
 document.getElementById("startBtn")?.addEventListener('click', ()=>{
-// ... (Logic StartBtn giữ nguyên)
-  if(!selected.length) return alert("Chọn ít nhất 1 người!");
-  
-  // Báo cho Server/User biết Admin bắt đầu quay
-  socket.emit('admin_start_wheel');
+  if(!selected.length) return alert("Chọn ít nhất 1 người!");
+ 
+  // Báo cho Server/User biết Admin bắt đầu quay
+  socket.emit('admin_start_wheel');
 
-  // Reset hộp kết quả
-  resultBox.classList.remove("show");
+  // Reset hộp kết quả
+  resultBox.classList.remove("show");
 
-  interval = setInterval(()=>{
-    // Loại bỏ lớp 'selected' ở ô trước
-    const oldIdx = selected[currentIndex === 0 ? selected.length-1 : currentIndex-1];
-    const oldCell = document.querySelector(`[data-index='${oldIdx}']`);
-    if(oldCell) oldCell.classList.remove("selected");
+  interval = setInterval(()=>{
+    // Loại bỏ lớp 'selected' ở ô trước
+    const oldIdx = selected[currentIndex === 0 ? selected.length-1 : currentIndex-1];
+    const oldCell = document.querySelector(`[data-index='${oldIdx}']`);
+    if(oldCell) oldCell.classList.remove("selected");
 
-    // Thêm lớp 'selected' ở ô hiện tại
-    const idx = selected[currentIndex];
-    const cell = document.querySelector(`[data-index='${idx}']`);
-    if(cell) cell.classList.add("selected");
+    // Thêm lớp 'selected' ở ô hiện tại
+    const idx = selected[currentIndex];
+    const cell = document.querySelector(`[data-index='${idx}']`);
+    if(cell) cell.classList.add("selected");
 
-    tick.currentTime=0;
-    tick.play();
+    tick.currentTime=0;
+    tick.play();
 
-    currentIndex=(currentIndex+1)%selected.length;
-  },50);
+    currentIndex=(currentIndex+1)%selected.length;
+  },50);
 });
 
 document.getElementById("stopBtn")?.addEventListener('click', ()=>{
-// ... (Logic StopBtn giữ nguyên)
-  if(!selected.length) return alert("Chọn ít nhất 1 người!");
-  
-  clearInterval(interval);
-  const winnerIndex = selected[currentIndex===0?selected.length-1:currentIndex-1];
-  const winnerName = names[winnerIndex];
-  
-  // Gửi kết quả chiến thắng đến Server
-  socket.emit('admin_stop_wheel', winnerName);
+  if(!selected.length) return alert("Chọn ít nhất 1 người!");
+ 
+  clearInterval(interval);
+  const winnerIndex = selected[currentIndex===0?selected.length-1:currentIndex-1];
+  const winnerName = names[winnerIndex];
+ 
+  // Gửi kết quả chiến thắng đến Server
+  socket.emit('admin_stop_wheel', winnerName);
 
-  // Xử lý hiển thị kết quả cục bộ trên máy Admin
-  resultBox.innerText = "🎉 "+winnerName+" 🎉";
-  resultBox.classList.add("show");
-  startFireworks();
+  // Xử lý hiển thị kết quả cục bộ trên máy Admin
+  resultBox.innerText = "🎉 "+winnerName+" 🎉";
+  resultBox.classList.add("show");
+  startFireworks();
 
-  // >>> BỔ SUNG: LOẠI BỎ HIỆU ỨNG SELECTED TRÊN CÁC Ô TRÊN MÁY ADMIN
-  document.querySelectorAll('.cell').forEach(cell => {
-    cell.classList.remove('selected');
-  });
-  
-  // Reset trạng thái Admin
-  selected=[];
-  currentIndex=0;
-  document.getElementById('selectAllCheckbox').checked = false;
+  // >>> BỔ SUNG: LOẠI BỎ HIỆU ỨNG SELECTED TRÊN CÁC Ô TRÊN MÁY ADMIN
+  document.querySelectorAll('.cell').forEach(cell => {
+    cell.classList.remove('selected');
+  });
+ 
+  // Reset trạng thái Admin
+  selected=[];
+  currentIndex=0;
+  document.getElementById('selectAllCheckbox').checked = false;
 });
 
 const selectAllCheckbox = document.getElementById('selectAllCheckbox');
 selectAllCheckbox.addEventListener('change', () => {
-  // ... (Logic SelectAll giữ nguyên)
-  if(!names.length || role !== 'admin') return;
-  
-  selected = [];
-  document.querySelectorAll('.cell').forEach((cell, idx) => {
-    // Chỉ chọn/bỏ chọn các ô có tên và không phải ô trống
-    if(cell.innerText.trim() && !cell.classList.contains('empty')){
-      if(selectAllCheckbox.checked){
-        cell.classList.add('selected');
-        selected.push(idx);
-      } else {
-        cell.classList.remove('selected');
-      }
-    }
-  });
+  if(!names.length || role !== 'admin') return;
+ 
+  selected = [];
+  document.querySelectorAll('.cell').forEach((cell, idx) => {
+    // Chỉ chọn/bỏ chọn các ô có tên và không phải ô trống
+    if(cell.innerText.trim() && !cell.classList.contains('empty')){
+      if(selectAllCheckbox.checked){
+        cell.classList.add('selected');
+        selected.push(idx);
+      } else {
+        cell.classList.remove('selected');
+      }
+    }
+  });
 });
 
 
 // ----- ADMIN LIST CONTROLS MỚI (Vị trí 3) -----
 // Nút Copy Danh sách
 copyListBtn.addEventListener('click', async () => {
-    // Lấy tất cả tên trong danh sách và tạo thành chuỗi, mỗi tên 1 dòng
-    const namesArray = Array.from(participantList.children)
-                             .map(li => li.innerText)
-                             .filter(name => name !== 'Chưa có ai tham gia.');
-    
-    if (namesArray.length === 0) {
-        alert("Danh sách trống!");
-        return;
-    }
-    
-    const listText = namesArray.join('\n');
-    
-    try {
-        await navigator.clipboard.writeText(listText);
-        copyListBtn.innerText = "Đã Copy! ✅";
-        setTimeout(() => { copyListBtn.innerText = "📋 Copy Danh sách"; }, 1500);
-    } catch (err) {
-        alert('Không thể Copy: ' + err);
-    }
+    // Lấy tất cả tên trong danh sách và tạo thành chuỗi, mỗi tên 1 dòng
+    const namesArray = Array.from(participantList.children)
+                             .map(li => li.innerText)
+                             .filter(name => name !== 'Chưa có ai tham gia.');
+   
+    if (namesArray.length === 0) {
+        alert("Danh sách trống!");
+        return;
+    }
+   
+    const listText = namesArray.join('\n');
+   
+    try {
+        await navigator.clipboard.writeText(listText);
+        copyListBtn.innerText = "Đã Copy! ✅";
+        setTimeout(() => { copyListBtn.innerText = "📋 Copy Danh sách"; }, 1500);
+    } catch (err) {
+        alert('Không thể Copy: ' + err);
+    }
 });
 
 // Nút Reset Danh sách Thủ công
 resetListBtn.addEventListener('click', () => {
-    if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ danh sách người tham gia không?")) {
-        return;
-    }
-    
-    // Gửi yêu cầu xóa danh sách lên Server
-    socket.emit('admin_reset_participants');
+    if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ danh sách người tham gia không?")) {
+        return;
+    }
+   
+    // Gửi yêu cầu xóa danh sách lên Server
+    socket.emit('admin_reset_participants');
 });
 // KẾT THÚC ADMIN LIST CONTROLS MỚI
 
 
 // ----- USER CONTROLS -----
 confirmBtn?.addEventListener('click', ()=>{
-// ... (Logic User Join giữ nguyên)
-  if(!username) return;
-  const userIndex = names.indexOf(username);
-  if(userIndex===-1) return;
-  
-  // Gửi thông tin tham gia lên Server
-  socket.emit('user_join', {index:userIndex, username: username});
-  
-  
-  hasJoined = true;
-  confirmBtn.style.display = 'none';
-  cancelBtn.style.display = 'block';
+  if(!username) return;
+  const userIndex = names.indexOf(username);
+  if(userIndex===-1) return;
+  
+  // Gửi thông tin tham gia lên Server
+  socket.emit('user_join', {index:userIndex, username: username});
+ 
+  
+  hasJoined = true;
+  confirmBtn.style.display = 'none';
+  cancelBtn.style.display = 'block';
 });
 
 cancelBtn?.addEventListener('click', ()=>{
-// ... (Logic User Cancel giữ nguyên)
-  if(!hasJoined) return;
-  const userIndex = names.indexOf(username);
-  if(userIndex===-1) return;
+  if(!hasJoined) return;
+  const userIndex = names.indexOf(username);
+  if(userIndex===-1) return;
 
-  // Gửi thông tin hủy tham gia lên Server
-  socket.emit('user_cancel', {index:userIndex, username: username});
-  
-  
-  hasJoined = false;
-  confirmBtn.style.display = 'block';
-  cancelBtn.style.display = 'none';
+  // Gửi thông tin hủy tham gia lên Server
+  socket.emit('user_cancel', {index:userIndex, username: username});
+ 
+  
+  hasJoined = false;
+  confirmBtn.style.display = 'block';
+  cancelBtn.style.display = 'none';
 });
 
 
@@ -632,118 +663,164 @@ cancelBtn?.addEventListener('click', ()=>{
 
 // 1. Nhận trạng thái ban đầu khi kết nối
 socket.on('initial_state', (data) => {
-    const allCells = document.querySelectorAll(".cell");
-    allCells.forEach(c=>c.classList.remove("selected"));
+    const allCells = document.querySelectorAll(".cell");
+    allCells.forEach(c=>c.classList.remove("selected"));
 
-    if (role === 'admin') {
-        selected = [];
-        // Hiển thị các ô đã được chọn trên giao diện Admin
-        data.participants.forEach(p => {
-            selected.push(p.index);
-            const cell = document.querySelector(`[data-index='${p.index}']`);
-            if(cell) cell.classList.add('selected');
-        });
-        participantListContainer.style.display = 'block'; // Hiển thị khung danh sách
-        updateParticipantList(data.participants);
-    }
-    // User: Cập nhật trạng thái nút Tham gia/Hủy
-    if (role === 'user') {
-        hasJoined = data.participants.some(p => p.username === username);
-        confirmBtn.style.display = hasJoined ? 'none' : 'block';
-        cancelBtn.style.display = hasJoined ? 'block' : 'none';
-        participantListContainer.style.display = 'none'; // Ẩn với User
-    }
-    // Nếu là Admin, phải render grid sau khi đăng nhập để tạo cell và event listener
-    if (role === 'admin' && grid.innerHTML === '') renderGrid();
+    if (role === 'admin') {
+        selected = [];
+        // Hiển thị các ô đã được chọn trên giao diện Admin
+        data.participants.forEach(p => {
+            selected.push(p.index);
+            const cell = document.querySelector(`[data-index='${p.index}']`);
+            if(cell) cell.classList.add('selected');
+        });
+        participantListContainer.style.display = 'block'; // Hiển thị khung danh sách
+        updateParticipantList(data.participants);
+    }
+    // User: Cập nhật trạng thái nút Tham gia/Hủy
+    if (role === 'user') {
+        hasJoined = data.participants.some(p => p.username === username);
+        confirmBtn.style.display = hasJoined ? 'none' : 'block';
+        cancelBtn.style.display = hasJoined ? 'block' : 'none';
+        participantListContainer.style.display = 'none'; // Ẩn với User
+    }
+    // Nếu là Admin, phải render grid sau khi đăng nhập để tạo cell và event listener
+    if (role === 'admin' && grid.innerHTML === '') renderGrid();
 });
 
 
 // 2. ADMIN: Nhận thông báo user tham gia từ server
 socket.on('client_update_join', (data) => {
-    if (role === 'admin') {
-        const idx = data.index;
-        if (!selected.includes(idx)) selected.push(idx);
-        const cell = document.querySelector(`[data-index='${idx}']`);
-        if(cell) cell.classList.add('selected');
-    }
+    if (role === 'admin') {
+        const idx = data.index;
+        if (!selected.includes(idx)) selected.push(idx);
+        const cell = document.querySelector(`[data-index='${idx}']`);
+        if(cell) cell.classList.add('selected');
+    }
 });
 
 // 3. ADMIN: Nhận thông báo user hủy từ server
 socket.on('client_update_cancel', (data) => {
-    if (role === 'admin') {
-        const idx = data.index;
-        selected = selected.filter(i => i !== idx);
-        const cell = document.querySelector(`[data-index='${idx}']`);
-        if(cell) cell.classList.remove('selected');
-    }
+    if (role === 'admin') {
+        const idx = data.index;
+        selected = selected.filter(i => i !== idx);
+        const cell = document.querySelector(`[data-index='${idx}']`);
+        if(cell) cell.classList.remove('selected');
+    }
 });
 
 // 4. USER/ADMIN: Nhận kết quả và đồng bộ hóa hiển thị
 socket.on('client_stop_wheel', (winnerName) => {
-    // Dừng quay nếu đang quay
-    clearInterval(interval); 
-    
-    resultBox.innerText = "🎉 " + winnerName + " 🎉";
-    resultBox.classList.add("show");
-    startFireworks();
+    // Dừng quay nếu đang quay
+    clearInterval(interval); 
+   
+    resultBox.innerText = "🎉 " + winnerName + " 🎉";
+    resultBox.classList.add("show");
+    startFireworks();
 
-    // Reset trạng thái tham gia cho User
-    if (role === 'user') {
-        hasJoined = false;
-        confirmBtn.style.display = 'block';
-        cancelBtn.style.display = 'none';
-    }
+    // Reset trạng thái tham gia cho User
+    if (role === 'user') {
+        hasJoined = false;
+        confirmBtn.style.display = 'block';
+        cancelBtn.style.display = 'none';
+    }
 });
 
 // 5. ADMIN: Nhận danh sách cập nhật từ Server (sau Join/Cancel/Reset/StopWheel) (Vị trí 4)
 socket.on('participant_update', (participants) => {
-    if (role === 'admin') {
-        updateParticipantList(participants);
-    }
+    if (role === 'admin') {
+        updateParticipantList(participants);
+    }
 });
 
 
 // ----- FIREWORK -----
 function startFireworks(){
-// ... (Hàm Firework giữ nguyên)
-  const canvas = document.getElementById("fireworks");
-  const ctx = canvas.getContext("2d");
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-  const particles = [];
-  // (Giữ nguyên hàm createParticle và animate)
-  function createParticle(){
-    const p = {
-      x: canvas.width/2,
-      y: canvas.height/2,
-      radius: Math.random()*3+2,
-      color: `hsl(${Math.random()*360},100%,50%)`,
-      dx:(Math.random()-0.5)*8,
-      dy:(Math.random()-0.5)*8,
-      life:100
-    };
-    particles.push(p);
-  }
-  for(let i=0;i<120;i++) createParticle();
-  function animate(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    particles.forEach((p,i)=>{
-      p.x+=p.dx; p.y+=p.dy; p.life--;
-      ctx.fillStyle=p.color;
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);
-      ctx.fill();
-      if(p.life<=0) particles.splice(i,1);
-    });
-    if(particles.length>0) requestAnimationFrame(animate);
-  }
-  animate();
+  const canvas = document.getElementById("fireworks");
+  const ctx = canvas.getContext("2d");
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+  const particles = [];
+  // (Giữ nguyên hàm createParticle và animate)
+  function createParticle(){
+    const p = {
+      x: canvas.width/2,
+      y: canvas.height/2,
+      radius: Math.random()*3+2,
+      color: `hsl(${Math.random()*360},100%,50%)`,
+      dx:(Math.random()-0.5)*8,
+      dy:(Math.random()-0.5)*8,
+      life:100
+    };
+    particles.push(p);
+  }
+  for(let i=0;i<120;i++) createParticle();
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach((p,i)=>{
+      p.x+=p.dx; p.y+=p.dy; p.life--;
+      ctx.fillStyle=p.color;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);
+      ctx.fill();
+      if(p.life<=0) particles.splice(i,1);
+    });
+    if(particles.length>0) requestAnimationFrame(animate);
+  }
+  animate();
 }
 // ----- CLICK NGOÀI ĐÓNG RESULT -----
 document.addEventListener('click',(e)=>{
-  if(resultBox.classList.contains('show') && !resultBox.contains(e.target) && e.target.id!=='stopBtn'){
-    resultBox.classList.remove('show');
-  }
+  if(resultBox.classList.contains('show') && !resultBox.contains(e.target) && e.target.id!=='stopBtn'){
+    resultBox.classList.remove('show');
+  }
 });
+// ====== ADMIN STATS FIX ======
+
+    const loadStatsBtn = document.getElementById('loadStatsBtn');
+const statsBody = document.getElementById('statsTableBody');
+
+console.log("BTN =", loadStatsBtn);
+console.log("TBODY =", statsBody);
+
+if (loadStatsBtn) {
+  loadStatsBtn.addEventListener('click', () => {
+    console.log("📤 CLICK → emit admin_request_stats");
+    socket.emit('admin_request_stats');
+  });
+}
+
+socket.on('stats_data', (stats) => {
+  console.log("📥 STATS RECEIVED:", stats);
+
+  statsBody.innerHTML = '';
+
+  const arr = Object.entries(stats).map(([name, d]) => ({
+    name,
+    join: d.join,
+    win: d.win,
+    rate: d.join ? ((d.win / d.join) * 100).toFixed(1) : '0.0'
+  }));
+
+  if (arr.length === 0) {
+    statsBody.innerHTML =
+      `<tr><td colspan="4">Chưa có dữ liệu</td></tr>`;
+    return;
+  }
+
+  arr.forEach(r => {
+    statsBody.innerHTML += `
+      <tr>
+        <td>${r.name}</td>
+        <td>${r.join}</td>
+        <td>${r.win}</td>
+        <td>${r.rate}%</td>
+      </tr>
+    `;
+  });
+});
+</script>
+
+
 </script>
 </body>
 </html>
