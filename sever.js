@@ -22,7 +22,6 @@ let activeUsers = {};  // { username: socketId }
 
 // ===== THỐNG KÊ (CHỈ CHẠY KHI ADMIN ONLINE) =====
 let stats = {}; 
-// stats = { username: { join: number, win: number } }
 let adminOnline = false;
 
 // --- HÀM HIỂN THỊ USER ONLINE ---
@@ -59,20 +58,16 @@ io.on('connection', (socket) => {
         console.log(`[LOGIN] ${username} | ${socket.id}`);
         displayActiveUsers();
 
-        // ===== ADMIN LOGIN → RESET STATS =====
         if (username === adminName) {
             adminOnline = true;
             stats = {};
             console.log('[STATS] Admin login → reset thống kê');
         }
 
-        socket.emit('login_status', {
-            success: true,
-            message: 'Đăng nhập thành công!'
-        });
+        socket.emit('login_status', { success: true });
     });
 
-    // -------- USER JOIN --------
+    // -------- USER JOIN (từ client người chơi) --------
     socket.on('user_join', (data) => {
         if (!participants.some(p => p.username === data.username)) {
             participants.push(data);
@@ -80,21 +75,52 @@ io.on('connection', (socket) => {
             io.emit('participant_update', participants);
             console.log(`[JOIN] ${data.username}`);
 
-            // ===== GHI THỐNG KÊ =====
             if (adminOnline) {
-                if (!stats[data.username]) {
-                    stats[data.username] = { join: 0, win: 0 };
-                }
+                if (!stats[data.username]) stats[data.username] = { join: 0, win: 0 };
                 stats[data.username].join++;
             }
         }
     });
 
-    // -------- USER CANCEL --------
+    // -------- USER CANCEL (từ client người chơi) --------
     socket.on('user_cancel', (data) => {
         participants = participants.filter(p => p.username !== data.username);
         io.emit('client_update_cancel', data);
         io.emit('participant_update', participants);
+
+        if (adminOnline && stats[data.username]) {
+            stats[data.username].join = Math.max(0, stats[data.username].join - 1);
+        }
+    });
+
+    // ======== ADMIN CHỌN THỦ CÔNG ========
+    socket.on('admin_manual_join', (data) => { // data = {index, username}
+        if (socket.data.username !== adminName) return;
+
+        if (!participants.some(p => p.username === data.username)) {
+            participants.push(data);
+            io.emit('client_update_join', data);
+            io.emit('participant_update', participants);
+
+            if (adminOnline) {
+                if (!stats[data.username]) stats[data.username] = { join: 0, win: 0 };
+                stats[data.username].join++;
+                console.log(`[ADMIN MANUAL JOIN] ${data.username} → join +1 = ${stats[data.username].join}`);
+            }
+        }
+    });
+
+    socket.on('admin_manual_cancel', (data) => { // data = {index, username}
+        if (socket.data.username !== adminName) return;
+
+        participants = participants.filter(p => p.username !== data.username);
+        io.emit('client_update_cancel', data);
+        io.emit('participant_update', participants);
+
+        if (adminOnline && stats[data.username]) {
+            stats[data.username].join = Math.max(0, stats[data.username].join - 1);
+            console.log(`[ADMIN MANUAL CANCEL] ${data.username} → join -1 = ${stats[data.username].join}`);
+        }
     });
 
     // -------- STOP WHEEL --------
@@ -104,39 +130,28 @@ io.on('connection', (socket) => {
         io.emit('participant_update', participants);
         console.log(`[RESULT] Winner: ${winnerName}`);
 
-        // ===== GHI LẦN TRÚNG =====
         if (adminOnline && stats[winnerName]) {
             stats[winnerName].win++;
         }
     });
 
-    socket.on('admin_start_wheel', () => {
-        console.log('[WHEEL] Start');
-    });
+    socket.on('admin_start_wheel', () => console.log('[WHEEL] Start'));
 
     socket.on('admin_reset_participants', () => {
         participants = [];
         io.emit('participant_update', participants);
     });
 
-   // ===== ADMIN XEM STATS =====
-socket.on('admin_request_stats', () => {
-    console.log('[STATS REQUEST] Admin yêu cầu xem thống kê từ socket:', socket.id);
-    console.log('[ADMIN CHECK] Username hiện tại của socket:', socket.data.username);
-    console.log('[ADMIN NAME] So sánh với adminName:', adminName);
-    console.log('[CURRENT STATS] Dữ liệu hiện tại:', JSON.stringify(stats));
-    if (socket.data.username === adminName) {
-        socket.emit('stats_data', stats);
-        console.log('[STATS SENT] Đã gửi dữ liệu thống kê về client thành công');
-    } else {
-        console.log('[STATS DENIED] Không phải admin - Không gửi dữ liệu');
-    }
-});
+    // ===== ADMIN XEM STATS =====
+    socket.on('admin_request_stats', () => {
+        if (socket.data.username === adminName) {
+            socket.emit('stats_data', stats);
+        }
+    });
 
     // -------- DISCONNECT --------
     socket.on('disconnect', () => {
         const username = socket.data.username;
-
         if (username && activeUsers[username] === socket.id) {
             delete activeUsers[username];
             console.log(`[LOGOUT] ${username}`);
@@ -145,7 +160,6 @@ socket.on('admin_request_stats', () => {
             participants = participants.filter(p => p.username !== username);
             io.emit('participant_update', participants);
 
-            // ===== ADMIN LOGOUT → CLEAR STATS =====
             if (username === adminName) {
                 adminOnline = false;
                 stats = {};
