@@ -227,7 +227,10 @@ border-radius: 8px;
 <body>
 
 <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-
+<audio id="adminMusic" loop preload="auto">
+    <source src="https://haof108.github.io/random-picker/X%E1%BB%95%20S%E1%BB%91%20Ki%E1%BA%BFn%20Thi%E1%BA%BFt_spotdown.org.mp3" type="audio/mpeg">
+    <!-- Nếu bạn dùng .ogg thì thêm dòng: <source src="admin-music.ogg" type="audio/ogg"> -->
+</audio>
 <div id="loginOverlay">
   <div class="loginBox">
     <h2>Nhập tên của bạn</h2>
@@ -845,9 +848,80 @@ socket.on('stats_data', (stats) => {
     `;
   });
 });
+ const adminMusic = document.getElementById('adminMusic');
+let musicEnabled = false; // Biến kiểm soát trạng thái nhạc
+
+// Hàm bật nhạc admin
+function enableAdminMusic() {
+    if (!adminMusic || musicEnabled) return;
+    
+    adminMusic.volume = 0.7; // Âm lượng 40%, bạn chỉnh thoải mái (0.0 - 1.0)
+    
+    // Thử phát ngay
+    adminMusic.play().then(() => {
+        musicEnabled = true;
+        console.log("Nhạc admin đang phát");
+    }).catch(err => {
+        console.log("Không thể phát nhạc tự động (có thể do chính sách autoplay):", err);
+        // Nếu bị chặn autoplay → vẫn đánh dấu là đã sẵn sàng, khi có tương tác sẽ phát
+        musicEnabled = true;
+    });
+}
+
+// Hàm tạm dừng nhạc
+function pauseAdminMusic() {
+    if (adminMusic && !adminMusic.paused) {
+        adminMusic.pause();
+        console.log("Nhạc admin tạm dừng (tab mất focus)");
+    }
+}
+
+// Hàm phát lại nhạc
+function resumeAdminMusic() {
+    if (adminMusic && musicEnabled && adminMusic.paused) {
+        adminMusic.play().catch(err => {
+            console.log("Không thể tiếp tục phát nhạc:", err);
+        });
+        console.log("Nhạc admin tiếp tục phát (tab được focus lại)");
+    }
+}
+
+// Sự kiện khi trang được focus (quay lại tab)
+window.addEventListener('focus', resumeAdminMusic);
+
+// Sự kiện khi trang mất focus (chuyển sang tab khác hoặc minimize)
+window.addEventListener('blur', pauseAdminMusic);
+
+// Phát nhạc ngay khi admin đăng nhập thành công
+socket.on('login_status', (data) => {
+    // ... (code cũ của bạn giữ nguyên)
+
+    if (data.success) {
+        // ... (code cũ)
+
+        if (role === 'admin') {
+            // Các hiển thị admin như cũ...
+            adminBtns.style.display = 'flex';
+            confirmBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+            adminControls.style.display = 'flex';
+            renderGrid();
+            participantListContainer.style.display = 'block'; 
+            document.getElementById('statsBox').style.display = 'block';
+
+            // === THÊM DÒNG NÀY: Bật nhạc admin ===
+            setTimeout(enableAdminMusic, 500); // Delay nhẹ để chắc chắn audio đã load
+        } else {
+            // User thường → không làm gì với nhạc admin
+            if (adminMusic) adminMusic.pause();
+        }
+    }
+    // ... (phần còn lại giữ nguyên)
+});
 </script>
 
 
 </script>
 </body>
 </html>
+
