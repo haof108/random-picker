@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room: Truy Tìm Nghề Nghiệp</title>
+    <!-- THÊM THƯ VIỆN MATHJAX ĐỂ HIỂN THỊ CÔNG THỨC TOÁN HỌC MƯỢT MÀ BẰNG SVG -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)'], ['$', '$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;600;800&display=swap');
+
+        :root {
+            --bg: #050505;
+            --surface: #121212;
+            --panel: #1a1a1f;
+            --primary: #00ffcc;
+            /* Cyber cyan */
+            --primary-dim: rgba(0, 255, 204, 0.2);
+            --danger: #ff2a2a;
+            /* Neon red */
+            --danger-dim: rgba(255, 42, 42, 0.2);
+            --success: #39ff14;
+            /* Neon green */
+            --text-main: #f0f0f0;
+            --text-dim: #888899;
+            --border: #333344;
+            --font-ui: 'Inter', sans-serif;
+            --font-mono: 'Space Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(0, 255, 204, 0.04), transparent 30%),
+                radial-gradient(circle at 85% 30%, rgba(255, 42, 42, 0.04), transparent 30%);
+        }
+
+        /* ── Screen Management ── */
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 24px;
+            flex: 1;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Typography & Elements ── */
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            color: #fff;
+            text-shadow: 0 0 10px var(--primary-dim), 0 0 20px var(--primary-dim);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--primary);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-family: var(--font-mono);
+            padding: 12px 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+            color: var(--bg);
+            box-shadow: 0 0 15px var(--primary-dim);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: var(--border);
+            color: var(--text-dim);
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .btn-danger {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: var(--bg);
+            box-shadow: 0 0 15px var(--danger-dim);
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--primary);
+            padding: 14px 16px;
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-dim);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-dim);
+            opacity: 0.5;
+        }
+
+        /* ── Screen 1: Level Select ── */
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .level-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 24px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .level-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+        }
+
+        .level-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+            opacity: 0.5;
+        }
+
+        .level-card.locked::before {
+            background: var(--text-dim);
+        }
+
+        .level-card.locked {
+            opacity: 0.7;
+            pointer-events: none;
+            filter: grayscale(1);
+        }
+
+        .level-card.completed {
+            border-color: var(--success);
+            opacity: 0.8;
+        }
+
+        .level-card.completed::before {
+            background: var(--success);
+            opacity: 1;
+        }
+
+        .level-card.completed .level-title {
+            color: var(--success);
+        }
+
+        .level-id {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .level-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .level-desc {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        /* ── Screen 2: Game UI ── */
+        .game-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .main-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 32px 24px;
+        }
+
+        .side-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            position: sticky;
+            top: 24px;
+        }
+
+        .room-title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stage-indicator {
+            font-family: var(--font-mono);
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .puzzle-box {
+            margin-bottom: 32px;
+        }
+
+        .puzzle-q {
+            font-size: 1.2rem;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .opt-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 16px;
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-ui);
+            font-size: 1rem;
+        }
+
+        .opt-btn:hover {
+            background: var(--primary-dim);
+            border-color: var(--primary);
+        }
+
+        .opt-btn.sel {
+            background: var(--primary);
+            color: var(--bg);
+            font-weight: 700;
+            border-color: var(--primary);
+        }
+
+        .clue-list {
+            list-style: none;
+            margin-top: 16px;
+        }
+
+        .clue-item {
+            padding: 12px 16px;
+            background: rgba(0, 255, 204, 0.05);
+            border-left: 3px solid var(--primary);
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            color: #ddd;
+            font-style: italic;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .clue-item.empty {
+            background: transparent;
+            border-left: 3px dashed var(--border);
+            color: var(--text-dim);
+        }
+
+        /* ── Final Door UI ── */
+        .final-door {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .lock-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.8;
+        }
+
+        .final-door h2 {
+            color: var(--danger);
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px var(--danger-dim);
+        }
+
+        /* ── Feedback & Toast ── */
+        .feedback {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 6px;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            display: none;
+        }
+
+        .feedback.error {
+            background: var(--danger-dim);
+            color: #ff6b6b;
+            border: 1px solid var(--danger);
+        }
+
+        .feedback.success {
+            background: var(--primary-dim);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--surface);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 12px 24px;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            border-radius: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            font-weight: 700;
+            z-index: 999;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="toast"></div>
+
+    <!-- HEADER (Visible only on menu) -->
+    <header class="header" id="main-header">
+        <h1>ESCAPE ROOM</h1>
+        <p>TRUY TÌM NGHỀ NGHIỆP BÍ ẨN</p>
+    </header>
+
+    <!-- SCREEN 1: Menu -->
+    <div class="screen active" id="s-menu">
+        <div class="container" style="max-width: 900px; margin: 0 auto;">
+            <p
+                style="text-align: center; color: var(--text-dim); margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Bạn đang bị nhốt trong những căn phòng bí ẩn. Cách duy nhất để thoát ra là giải mã các thử thách về môn
+                học, kỹ năng và hoàn thành dữ kiện để tìm ra <strong style="color:var(--primary)">tên ngành học/nghề
+                    nghiệp</strong> chủ đề của phòng đó.
+            </p>
+
+            <div class="level-grid" id="level-list">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: Play -->
+    <div class="screen" id="s-play">
+        <div class="container pb-6">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <button class="btn btn-sm" onclick="abandonRoom()"
+                    style="padding: 8px 16px; font-size: 0.8rem; border-color: var(--border); color: var(--text-dim);">
+                    ◀ Trở về danh sách
+                </button>
+                <button class="btn btn-sm btn-danger" id="btn-guess-now" onclick="skipToFinalDoor()"
+                    style="padding: 8px 16px; font-size: 0.8rem;" title="Bỏ qua thử thách và đoán từ khóa ngay lập tức">
+                    🔑 ĐOÁN TỪ KHÓA NGAY
+                </button>
+            </div>
+
+            <div class="game-layout">
+                <!-- Left: Puzzle Area -->
+                <div class="main-panel">
+                    <div class="room-title-bar">
+                        <h2 id="room-name">PHÒNG MÁY CHỦ</h2>
+                        <div class="stage-indicator" id="stage-ind">Phân khu 1 / 3</div>
+                    </div>
+
+                    <div id="puzzle-content">
+                        <!-- Content injected dynamically -->
+                    </div>
+
+                    <div class="feedback" id="feedback"></div>
+
+                    <div style="margin-top: 32px; display: flex; gap: 12px; justify-content: flex-end;">
+                        <button class="btn" id="btn-submit" onclick="checkPuzzle()">Kiểm tra mã khóa</button>
+                        <button class="btn" id="btn-next" onclick="nextStage()"
+                            style="display:none; background: var(--primary); color: var(--bg);">Tiến vào khu vực tiếp
+                            theo ➔</button>
+                    </div>
+                </div>
+
+                <!-- Right: Inventory / Clues -->
+                <div class="side-panel">
+                    <h3
+                        style="font-size: 1rem; color: var(--text-dim); border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;">
+                        📂 MANH MỐI ĐÃ THU THẬP
+                    </h3>
+                    <ul class="clue-list" id="clue-box">
+                        <!-- Clues injected here -->
+                    </ul>
+                    <div
+                        style="margin-top: 24px; padding: 16px; border: 1px dashed var(--border); border-radius: 6px; text-align: center;">
+                        <p style="font-size: 0.8rem; color: var(--text-dim); font-family: var(--font-mono);">Đích đến:
+                        </p>
+                        <p style="font-size: 0.9rem; font-weight: 600; color: #fff; margin-top: 4px;">Tìm ra tên 1 ngành
+                            nghề</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Data ──
+        // ── Data ──
+        const MISSIONS = [
+            {
+                id: "RM-01",
+                title: "Nghệ Thuật Cứu Rỗi",
+                desc: "Thử thách giải mã để tìm ra nghề nghiệp xoay quanh ranh giới mong manh.",
+                finalAnswer: "BÁC SĨ",
+                stages: [
+                    {
+                        type: "choice",
+                        question: "Một cửa hàng bán táo, xoài, cam ở chợ. Khách thứ nhất mua 3kg táo, 2kg xoài, 3kg cam trả 432.000đ; khách 2 mua 4kg táo, 1kg xoài, 5kg cam trả 543.000đ. Khách 3 mua 6kg táo, 4kg xoài, 6kg cam thì phải trả số tiền là:",
+                        options: ["A. 864.000 đồng", "B. 886.000 đồng", "C. 975.000 đồng", "D. 846.000 đồng"],
+                        correct: 0,
+                        clue: "Họ can thiệp vào một hệ thống phức tạp nhất, nơi hỏng hóc thường được báo hiệu bằng những nhịp đập hỗn loạn."
+                    },
+                    {
+                        type: "choice",
+                        question: "Đồ thị hàm số nào dưới đây có cả tiệm cận ngang lẫn tiệm cận đứng?",
+                        options: ["A. \\(y = 3x^3 - 2x\\)", "B. \\(y = \\frac{\\sqrt{2055-x^2}}{x+10}\\)", "C. \\(y = \\left(\\frac{3}{4}\\right)^x\\)", "D. \\(y = \\frac{3x+5}{2x^2-4}\\)"],
+                        correct: 3,
+                        clue: "Sắc màu họ khoác lên mình hấp thụ mọi giới hạn của quang phổ, từ chối mọi tỳ vết dù là nhỏ nhất."
+                    },
+                    {
+                        type: "choice",
+                        question: "Số nghiệm của phương trình \\(\\sqrt{11+x} - \\sqrt{x-1} = 2\\) thuộc khoảng \\((0;4)\\) là?",
+                        options: ["A. 0", "B. 1", "C. 2", "D. 3"],
+                        correct: 0,
+                        clue: "Một đường thẳng nhấp nháy tĩnh lặng trên màn hình là hệ quả khi họ phải đối diện với giới hạn."
+                    },
+                    {
+                        type: "choice",
+                        question: "Cho tam giác ABC vuông tại A. Biết \\(BC = 3a\\sqrt{2}, B = 30^\\circ\\). Độ dài AC là:",
+                        options: ["A. \\(\\frac{3a}{2}\\)", "B. \\(3a\\sqrt{2}\\)", "C. \\(3a\\sqrt{6}\\)", "D. \\(\\frac{3a\\sqrt{2}}{2}\\)"],
+                        correct: 3,
+                        clue: "Sự thâm nhập vật lý xuyên qua lớp vỏ bọc hoàn hảo thường là giao thức để sửa chữa lỗi lõi triệt để."
+                    },
+                    {
+                        type: "choice",
+                        question: "Đặt \\(a = \\log_2 3, b = \\log_3 5, c = \\log_7 2\\). Khi đó, \\(\\log_{140} 63\\) được tính theo \\(a, b, c\\) là:",
+                        options: ["A. \\(\\frac{2ac + 1}{1 + abc + 2b}\\)", "B. \\(\\frac{2ab + 2}{1 + abc + 2b}\\)", "C. \\(\\frac{2ac + 2}{1 + abc + 2c}\\)", "D. \\(\\frac{2ac + 1}{1 + abc + 2c}\\)"],
+                        correct: 3,
+                        clue: "Họ thường xuyên phải dõi theo và duy trì biên độ của những đường dao động hình sin mỏng manh nhất."
+                    }
+                ]
+            },
+            {
+                id: "RM-02",
+                title: "Cán Cân Chấn Thép",
+                desc: "Căn phòng chìm trong bóng tối, chỉ có một luồng sáng duy nhất dẫn đường. Hãy cẩn thận.",
+                finalAnswer: "CẢNH SÁT",
+                stages: [
+                    {
+                        type: "choice",
+                        question: "Trong không gian Oxyz, cho (P): \\(2x+2y-z+5=0\\), (Q): \\(x+2y-2z+3=0\\) và A(1;2;5). Mặt phẳng qua A vuông góc (P), (Q) là:",
+                        options: ["A. \\(2x - 3y + 2z - 6 = 0\\)", "B. \\(2x - 3y - 2z + 14 = 0\\)", "C. \\(2x - 3y - 2z + 6 = 0\\)", "D. \\(2x + 3y + 2z - 18 = 0\\)"],
+                        correct: 1,
+                        clue: "Họ là những điểm neo của một hệ thống luôn chực chờ rơi rụng trước entropy của lòng trục lợi."
+                    },
+                    {
+                        type: "choice",
+                        question: "Cho tam giác ABC có \\(B = 60^\\circ, AC = 5, \\cos(A+B) = -\\frac{1}{2}\\). Tính độ dài cạnh BC:",
+                        options: ["A. 5", "B. \\(\\frac{5\\sqrt{3}}{2}\\)", "C. \\(\\frac{5}{2}\\)", "D. \\(\\frac{5\\sqrt{2}}{2}\\)"],
+                        correct: 0,
+                        clue: "Được cấp quyền hạn can thiệp vào các biến số tự do, họ có trách nhiệm loại bỏ dị biệt khỏi tập xác định."
+                    },
+                    {
+                        type: "choice",
+                        question: "Trong hệ tọa độ Oxyz, cho mặt phẳng \\((P): 2x + 2y - z + 5 = 0\\), và điểm \\(A(1; 2; 5)\\). Biết H là hình chiếu của A trên (P) và AH là đường kính của đường tròn (C). Tính bán kính đường tròn (C):",
+                        options: ["A. 1", "B. 2", "C. 4", "D. 6"],
+                        correct: 0,
+                        clue: "Nhiệm vụ của họ đa phần diễn ra ở những mảng màu tối, cố lượm lặt những mảnh ghép của sự thao túng."
+                    },
+                    {
+                        type: "choice",
+                        question: "Cho hàm số \\(f(x)\\) có đồ thị gồm đúng 1 TCN và 1 TCĐ. Đồ thị hàm số \\(g(x) = f(x)\\frac{x^3}{x^2}\\) có tối đa bao nhiêu đường tiệm cận?",
+                        options: ["A. 2", "B. 3", "C. 4", "D. 5"],
+                        correct: 0,
+                        clue: "Trong những trường hợp cực đoan, động năng cưỡng chế sẽ được áp dụng như một thông số tái thiết lập."
+                    },
+                    {
+                        type: "choice",
+                        question: "Cho phương trình \\(x^3 + (m-2)x^2 + 3x = 0\\). Có bao nhiêu số nguyên \\(m \\in (-2026; 2026)\\) để phương trình có 2 nghiệm thực dương?",
+                        options: ["A. 2017", "B. 2018", "C. 2024", "D. 2026"],
+                        correct: 2,
+                        clue: "Đứng giữa ranh giới của quy luật và mặt âm bản của nó, họ là tấm màn che chắn sự sụp đổ của một ma trận trật tự."
+                    }
+                ]
+            },
+            {
+                id: "RM-03",
+                title: "Học Giả Ngôn Ngữ Số",
+                desc: "Không gian tĩnh lặng rợn người, sự sai lệch vô hình định đoạt tồn vong.",
+                finalAnswer: "LẬP TRÌNH VIÊN",
+                stages: [
+                    {
+                        type: "choice",
+                        question: "Cho cấp số nhân \\((u_n)\\) có công bội dương, \\(u_1+u_2+u_3=\\frac{741}{625}\\) và \\(\\lim(u_1+...+u_n)=\\frac{25}{21}\\). Tính tổng số hạng đầu \\(u_1\\) và công bội \\(q\\):",
+                        options: ["A. \\(\\frac{4}{25}\\)", "B. 1", "C. \\(\\frac{1}{5}\\)", "D. \\(\\frac{29}{25}\\)"],
+                        correct: 3,
+                        clue: "Họ chi phối một hiện thực hư ảo thuần túy được cấu thành từ hai trạng thái cơ sở nguyên thủy."
+                    },
+                    {
+                        type: "choice",
+                        question: "Tập xác định của hàm số \\(y = \\frac{\\ln(3^x - 1)}{\\sqrt{x^2 - 3}}\\) là:",
+                        options: ["A. \\((-\\infty; -\\sqrt{3}) \\cup (\\sqrt{3}; +\\infty)\\)", "B. \\((0; +\\infty)\\)", "C. \\(\\mathbb{R}\\)", "D. \\((\\sqrt{3}; +\\infty)\\)"],
+                        correct: 3,
+                        clue: "Nhà xây dựng nhưng chưa từng chạm tay vào bản thiết kế, mọi kết cấu đều không liên kết với thế giới vật lý."
+                    },
+                    {
+                        type: "choice",
+                        question: "Tính giới hạn \\(\\lim_{x \\to +\\infty} \\frac{(a^2-4a+3)x^3 + 20x^2}{(a^2-2a+1)x^3}\\). Có bao nhiêu số nguyên \\(a\\) để giới hạn này bằng 0?",
+                        options: ["A. 1", "B. 2", "C. 3", "D. 0"],
+                        correct: 0,
+                        clue: "Một ký tự chấm phẩy trật nhịp cũng có thể vô hiệu hóa toàn bộ guồng quay trị giá hàng vạn giờ nhận thức."
+                    },
+                    {
+                        type: "choice",
+                        question: "Phương trình \\(2 + \\sin 2x - 2\\cos^2 x = 0\\) có bao nhiêu nghiệm thuộc khoảng \\((0; 2\\pi)\\)?",
+                        options: ["A. 0", "B. 1", "C. 2", "D. 3"],
+                        correct: 3,
+                        clue: "Họ dành quỹ thời gian chủ yếu để đàm thoại với sự cứng nhắc tuyệt đối, nhào nặn khối tinh thể phi logic thành hệ mô phỏng tư duy."
+                    },
+                    {
+                        type: "choice",
+                        question: "Cho bất PT \\(\\log_2(5^x + 3^x + 2^x - 3) < \\log_2 m\\). Gọi S là tập các giá trị nguyên của m để BPT có đúng 2 nghiệm nguyên. Số phần tử của S là:",
+                        options: ["A. 35", "B. 38", "C. 123", "D. 122"],
+                        correct: 3,
+                        clue: "Là nhà dịch thuật cấp đa nguyên, nhào nặn những hạt vi mô thành tương tác thị giác phức hợp trên một mặt phẳng phẳng lỳ."
+                    }
+                ]
+            },
+            {
+                id: "RM-04",
+                title: "Lời Thì Thầm Của Bê Tông",
+                desc: "Một không gian ngổn ngang các thước đo, giấy nháp và những bài toán trừu tượng vô tận.",
+                finalAnswer: "KIẾN TRÚC SƯ",
+                stages: [
+                    {
+                        type: "choice",
+                        question: "Có 6 người sống ở các tầng khác nhau của một tòa nhà 6 tầng. H và U ở căn 1 phòng ngủ; J, S, Y ở căn 2 phòng ngủ; M ở căn 3 phòng ngủ. Căn ở tầng 2 có 2 phòng ngủ. M sống ở tầng thấp hơn S; J sống ở tầng thấp hơn U. Căn ở tầng 5 hơn căn ở tầng 3 một phòng ngủ.<br/><br/>Câu nào dưới đây KHÔNG thể đúng?",
+                        options: ["A. Y sống ở tầng 2.", "B. M sống ở tầng 5.", "C. S sống ở tầng 3.", "D. J sống ở tầng 1."],
+                        correct: 2,
+                        clue: "Họ uốn cong các mảng không gian ba chiều thông qua hệ thống những đường vạch hai chiều tĩnh tải."
+                    },
+                    {
+                        type: "choice",
+                        question: "(Cùng dữ kiện tòa nhà 6 tầng trên)<br/><br/>H KHÔNG thể sống ở tầng nào dưới đây?",
+                        options: ["A. Tầng 3.", "B. Tầng 6.", "C. Tầng 5.", "D. Tầng 4."],
+                        correct: 2,
+                        clue: "Thành quả lao động của họ đứng trơ trọi nhưng lại có khả năng nắn dòng di chuyển của mọi biến thể vi mô tiếp cận ranh giới của nó."
+                    },
+                    {
+                        type: "choice",
+                        question: "(Cùng dữ kiện tòa nhà 6 tầng trên)<br/><br/>Nếu Y sống ở tầng 1 thì hai người nào dưới đây KHÔNG thể sống ở 2 tầng kề nhau?",
+                        options: ["A. J và U.", "B. M và S.", "C. J và M.", "D. H và M."],
+                        correct: 2,
+                        clue: "Vận dụng tối đa các điểm mù và hệ góc để thiết lập những cạm bẫy ảo ảnh hoàn hảo của ánh sáng chiếu."
+                    },
+                    {
+                        type: "choice",
+                        question: "(Cùng dữ kiện tòa nhà 6 tầng trên)<br/><br/>Nếu S sống ở tầng 4 thì câu nào dưới đây KHÔNG thể đúng?",
+                        options: ["A. J ở tầng 2 và H ở tầng 3.", "B. Y ở tầng 2 và H ở tầng 3.", "C. Y ở tầng 2 và U ở tầng 3.", "D. J ở tầng 2 và U ở tầng 3."],
+                        correct: 2,
+                        clue: "Những kẻ phải liên tục thỏa hiệp đầy đớn đau với định luật vạn vật hấp dẫn để kéo ý tưởng thoát ly mặt đất."
+                    }
+                ]
+            },
+            {
+                id: "RM-05",
+                title: "Kẻ Lữ Hành Vô Thường",
+                desc: "Thử thách trên một con đường không có điểm kết với muôn vàn biến số vô tận.",
+                finalAnswer: "TÀI XẾ",
+                stages: [
+                    {
+                        type: "choice",
+                        question: "Có 6 người F, G, H, J, K, L đi du lịch trên 2 xe ô tô, mỗi xe có tối đa 4 người (gồm cả người lái). Ràng buộc:<br>- F hoặc G phải lái chiếc xe mà H đi.<br>- F hoặc K phải lái chiếc xe mà J đi.<br>- G phải đi cùng xe với L.<br/><br/>Hai người nào sau đây KHÔNG THỂ đồng thời là hai người lái xe?",
+                        options: ["A. F và L.", "B. G và K.", "C. K và L.", "D. F và G."],
+                        correct: 2,
+                        clue: "Một thực thể sinh học gắn liền với hệ dao động tọa độ, điểm dừng lại chỉ mang ý nghĩa là khoảnh khắc nghỉ của chu kỳ."
+                    },
+                    {
+                        type: "choice",
+                        question: "(Cùng dữ kiện 6 người F,G,H,J,K,L đi 2 xe ô tô)<br/><br/>Nếu L lái một trong hai xe thì điều nào sau đây CÓ THỂ đúng?",
+                        options: ["A. F đi cùng xe với L.", "B. F đi cùng xe với K.", "C. G đi cùng xe với H.", "D. G đi cùng xe với J."],
+                        correct: 1,
+                        clue: "Sự thay đổi không ngừng của giá trị x trên trục tung là phương thức họ tích lũy giá trị. Tĩnh lặng là một sự suy vong."
+                    },
+                    {
+                        type: "choice",
+                        question: "(Cùng dữ kiện 6 người F,G,H,J,K,L đi 2 xe ô tô)<br/><br/>Nếu xe của F có 3 người và F KHÔNG lái xe thì người không lái xe còn lại phải là:",
+                        options: ["A. J", "B. G", "C. K", "D. H"],
+                        correct: 0,
+                        clue: "Khả năng sinh tồn không phụ thuộc vào trí tuệ ngôn ngữ mà vào việc thao túng động cơ phản hồi lực gia tốc."
+                    },
+                    {
+                        type: "choice",
+                        question: "(Cùng dữ kiện 6 người F,G,H,J,K,L đi 2 xe ô tô)<br/><br/>Nếu có một xe chỉ có hai người thì người KHÔNG lái chiếc xe này KHÔNG THỂ là:",
+                        options: ["A. H", "B. L", "C. K", "D. J"],
+                        correct: 2,
+                        clue: "Mục đích vĩ mô xoay quanh việc giảm trừ tuyệt đối khoảng không tiếp diễn đằng trước, mang theo trọng trách trên hệ thống lăn."
+                    }
+                ]
+            }
+        ];
+
+        // ── State ──
+        let $ = id => document.getElementById(id);
+        let currentRoom = -1;
+        let currentStage = 0;
+        let savedStage = -1;
+        let clues = []; // Collected clues
+        let selectedChoice = -1; // For choice puzzles
+        let completedRooms = []; // Track completed rooms
+
+        // ── Navigation ──
+        function toast(msg) {
+            const el = $('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            $(id).classList.add('active');
+            if (id === 's-menu') $('main-header').style.display = 'block';
+            else $('main-header').style.display = 'none';
+        }
+
+        // ── Initialization ──
+        function initMenu() {
+            const list = $('level-list');
+            list.innerHTML = MISSIONS.map((m, i) => {
+                const isCompleted = completedRooms.includes(i);
+                return `
+                <div class="level-card ${isCompleted ? 'completed' : ''}" ${!isCompleted ? `onclick="enterRoom(${i})"` : ''}>
+                    <div class="level-id">${m.id} ${isCompleted ? '✔️ ĐÃ MỞ KHÓA' : ''}</div>
+                    <div class="level-title">${m.title}</div>
+                    <div class="level-desc">${m.desc}</div>
+                    <button class="btn" style="width:100%; padding: 8px; ${isCompleted ? 'border-color:var(--success); color:var(--success);' : ''}">
+                        ${isCompleted ? 'ĐÃ HOÀN THÀNH' : 'ĐĂNG NHẬP ➔'}
+                    </button>
+                </div>
+            `}).join('');
+        }
+
+        function abandonRoom() {
+            if (confirm("Bạn có chắc chắn muốn bỏ cuộc và quay lại sảnh không?")) {
+                showScreen('s-menu');
+            }
+        }
+
+        function skipToFinalDoor() {
+            if (confirm("Chuyển ngay đến cửa thoát hiểm dự phòng? LƯU Ý: Bạn sẽ KHÔNG nhận được thêm manh mối nào nữa từ các phân khu sau!")) {
+                savedStage = currentStage;
+                currentStage = MISSIONS[currentRoom].stages.length;
+                renderStage();
+            }
+        }
+
+        // ── Game Logic ──
+        function enterRoom(roomIdx) {
+            currentRoom = roomIdx;
+            currentStage = 0;
+            savedStage = -1;
+            clues = [];
+            showScreen('s-play');
+            renderStage();
+        }
+
+        function renderStage() {
+            const room = MISSIONS[currentRoom];
+            $('room-name').textContent = room.title;
+            $('feedback').style.display = 'none';
+            $('btn-submit').style.display = 'inline-flex';
+            $('btn-next').style.display = 'none';
+            if ($('btn-guess-now')) $('btn-guess-now').style.display = 'inline-flex';
+
+            // Clue Box Update
+            let clueHtml = '';
+            for (let i = 0; i < room.stages.length; i++) {
+                if (i < clues.length) {
+                    clueHtml += `<li class="clue-item">" ${clues[i]} "</li>`;
+                } else {
+                    clueHtml += `<li class="clue-item empty">🔒 Giải mã phân khu ${i + 1} để mở manh mối</li>`;
+                }
+            }
+            $('clue-box').innerHTML = clueHtml;
+
+            // Check if final door
+            if (currentStage >= room.stages.length) {
+                renderFinalDoor(room);
+                return;
+            }
+
+            // Normal Stage
+            $('stage-ind').textContent = `PHÂN KHU ${currentStage + 1} / ${room.stages.length}`;
+            const stage = room.stages[currentStage];
+            const content = $('puzzle-content');
+
+            let html = `<div class="puzzle-q">${stage.question}</div>`;
+
+            if (stage.type === 'text') {
+                html += `<input type="text" class="form-input" id="ans-input" placeholder="Nhập đáp án của bạn vào đây..." autocomplete="off"/>`;
+            }
+            else if (stage.type === 'choice') {
+                selectedChoice = -1;
+                html += `<div class="options-grid">`;
+                stage.options.forEach((opt, idx) => {
+                    html += `<div class="opt-btn" id="opt-${idx}" onclick="selectOption(${idx})">${opt}</div>`;
+                });
+                html += `</div>`;
+            }
+
+            content.innerHTML = html;
+
+            // Kích hoạt MathJax để render công thức Toán học
+            if (window.MathJax) {
+                MathJax.typesetPromise([content]).catch(function (err) {
+                    console.error('MathJax error:', err);
+                });
+            }
+        }
+
+        function selectOption(idx) {
+            selectedChoice = idx;
+            document.querySelectorAll('.opt-btn').forEach(el => el.classList.remove('sel'));
+            $('opt-' + idx).classList.add('sel');
+        }
+
+        function checkPuzzle() {
+            const room = MISSIONS[currentRoom];
+
+            // Checking final door
+            if (currentStage >= room.stages.length) {
+                const ans = $('final-input').value.trim().toLowerCase();
+                const fb = $('feedback');
+                fb.style.display = 'block';
+
+                // Allow fuzzy matching without diacritics roughly
+                const pureInput = ans.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
+                const pureTarget = room.finalAnswer.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
+
+                if (ans === room.finalAnswer.toLowerCase() || pureInput === pureTarget) {
+                    fb.className = 'feedback success';
+                    fb.innerHTML = '🎉 XUẤT SẮC! CÁNH CỬA ĐÃ MỞ!<br/>Bạn đã tìm ra ngành <strong style="color:#fff;font-size:1.1em">' + room.finalAnswer + '</strong>';
+                    $('btn-submit').style.display = 'none';
+
+                    if (!completedRooms.includes(currentRoom)) {
+                        completedRooms.push(currentRoom);
+                    }
+
+                    $('puzzle-content').innerHTML += `
+                        <div style="margin-top:40px; text-align:center">
+                            <button class="btn" style="background:var(--success);color:var(--bg);padding:16px 32px;font-size:1.1rem;width:100%" onclick="returnToMainMenu()">
+                                ✅ Về Sảnh Chính Để Chọn Phòng Khác
+                            </button>
+                        </div>`;
+                } else {
+                    fb.className = 'feedback error';
+                    if (savedStage !== -1) {
+                        $('btn-submit').style.display = 'none';
+                        fb.innerHTML = 'Mã định danh sai! Đang đưa bạn quay lại phân khu ban nãy...';
+                        setTimeout(() => {
+                            currentStage = savedStage;
+                            savedStage = -1;
+                            renderStage();
+                        }, 2000);
+                    } else {
+                        fb.innerHTML = 'Cảnh báo: Sai mã định danh ngành nghề. Hãy xâu chuỗi manh mối lại!';
+                    }
+                }
+                return;
+            }
+
+            // Checking normal stage
+            const stage = room.stages[currentStage];
+            const fb = $('feedback');
+            fb.style.display = 'block';
+            let isCorrect = false;
+
+            if (stage.type === 'text') {
+                const val = $('ans-input').value.trim().toLowerCase();
+                if (!val) { fb.className = 'feedback error'; fb.innerHTML = 'Vui lòng nhập đáp án!'; return; }
+                const pureVal = val.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
+
+                isCorrect = stage.correct.some(c => {
+                    const pc = c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d");
+                    return val === c.toLowerCase() || pureVal === pc;
+                });
+            } else if (stage.type === 'choice') {
+                if (selectedChoice === -1) { fb.className = 'feedback error'; fb.innerHTML = 'Vui lòng chọn 1 đáp án!'; return; }
+                isCorrect = (selectedChoice === stage.correct);
+            }
+
+            if (isCorrect) {
+                fb.className = 'feedback success';
+                fb.innerHTML = '✅ MÃ KHÓA CHÍNH XÁC!<br/><span style="font-size:0.85em;font-weight:400;color:var(--text-main)">Bạn đã nhận được Hệ thống cung cấp mảnh manh mối mới.</span>';
+                $('btn-submit').style.display = 'none';
+                $('btn-next').style.display = 'inline-flex';
+                if (stage.type === 'text') $('ans-input').disabled = true;
+                else { document.querySelectorAll('.opt-btn').forEach(btn => btn.style.pointerEvents = 'none'); }
+            } else {
+                fb.className = 'feedback error';
+                fb.innerHTML = '❌ TRUY CẬP BỊ TỪ CHỐI. Mã khóa sai, hãy thử lại!';
+            }
+        }
+
+        function nextStage() {
+            clues.push(MISSIONS[currentRoom].stages[currentStage].clue);
+            currentStage++;
+            renderStage();
+        }
+
+        function renderFinalDoor(room) {
+            $('stage-ind').textContent = 'CỬA THOÁT HIỂM CUỐI CÙNG';
+            if ($('btn-guess-now')) $('btn-guess-now').style.display = 'none';
+            $('puzzle-content').innerHTML = `
+                <div class="final-door">
+                    <div class="lock-icon">🔐</div>
+                    <h2>MÃ ĐỊNH DANH NGHỀ NGHIỆP</h2>
+                    <p style="color:var(--text-dim); margin-bottom: 24px; font-size: 0.95rem;">Hệ thống yêu cầu xác nhận. Dựa vào ${room.stages.length} manh mối đã thu thập bên phải, hãy nhập tên chính xác của <strong>Ngành học / Nghề nghiệp</strong> này.</p>
+                    <input type="text" class="form-input" id="final-input" placeholder="Ví dụ: Quan hệ công chúng" style="text-align:center; font-size:1.3rem; letter-spacing: 2px;" autocomplete="off"/>
+                </div>
+            `;
+            $('btn-submit').textContent = 'MỞ KHÓA THOÁT HIỂM';
+        }
+
+        function returnToMainMenu() {
+            initMenu();
+            showScreen('s-menu');
+        }
+
+        // Wait for enter key to trigger button
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const submitBtn = $('btn-submit');
+                const nextBtn = $('btn-next');
+                if (nextBtn.style.display !== 'none') {
+                    nextBtn.click();
+                } else if (submitBtn.style.display !== 'none') {
+                    submitBtn.click();
+                }
+            }
+        });
+
+        // Start
+        initMenu();
+
+    </script>
+</body>
+
+</html>

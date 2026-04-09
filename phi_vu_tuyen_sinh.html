@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Phi vụ tuyển sinh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #07080f;
+            --surface: #0f1018;
+            --card: #141522;
+            --border: rgba(255, 255, 255, .09);
+            --violet: #9b5de5;
+            --cyan: #00d4b4;
+            --pink: #e85d9b;
+            --gold: #f0c040;
+            --green: #3ecf8e;
+            --red: #e84d4d;
+            --text: #eeeeff;
+            --muted: rgba(238, 238, 255, .45);
+            --radius: 10px;
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Be Vietnam Pro', sans-serif;
+            min-height: 100vh;
+            line-height: 1.6
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit
+        }
+
+        input,
+        select,
+        textarea {
+            font-family: inherit
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg)
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--violet);
+            border-radius: 2px
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse 70% 50% at 25% 15%, rgba(155, 93, 229, .07), transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 85%, rgba(0, 212, 180, .05), transparent 60%);
+        }
+
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 16px;
+            position: relative;
+            z-index: 1
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            padding: 0 0 48px
+        }
+
+        .screen.active {
+            display: block
+        }
+
+        /* Nav */
+        .nav {
+            background: rgba(15, 16, 24, .9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 50
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 16px
+        }
+
+        .logo {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(1rem, 3vw, 1.4rem);
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -.02em
+        }
+
+        .logo span {
+            color: var(--violet)
+        }
+
+        /* Typography */
+        .label {
+            font-family: 'Space Mono', monospace;
+            font-size: .62rem;
+            letter-spacing: .35em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            opacity: .7;
+            display: block;
+            margin-bottom: .4rem
+        }
+
+        h2 {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 700;
+            line-height: 1.25
+        }
+
+        h3 {
+            font-size: 1rem;
+            font-weight: 600
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px
+        }
+
+        .card-glow {
+            background: var(--card);
+            border: 1px solid rgba(155, 93, 229, .28);
+            border-radius: var(--radius);
+            padding: 22px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, .3)
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: .88rem;
+            font-weight: 600;
+            transition: opacity .15s, transform .1s;
+            text-decoration: none
+        }
+
+        .btn:hover {
+            opacity: .85
+        }
+
+        .btn:active {
+            transform: scale(.97)
+        }
+
+        .btn-primary {
+            background: var(--violet);
+            color: #fff
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--text)
+        }
+
+        .btn-outline:hover {
+            border-color: var(--violet);
+            color: var(--violet)
+        }
+
+        .btn-success {
+            background: var(--green);
+            color: #000;
+            font-weight: 700
+        }
+
+        .btn-gold {
+            background: var(--gold);
+            color: #000;
+            font-weight: 700
+        }
+
+        .btn-danger {
+            background: var(--red);
+            color: #fff
+        }
+
+        .btn-sm {
+            padding: 7px 14px;
+            font-size: .78rem
+        }
+
+        .btn-lg {
+            padding: 13px 32px;
+            font-size: .95rem
+        }
+
+        .btn-full {
+            width: 100%;
+            display: flex
+        }
+
+        .btn:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 15px
+        }
+
+        .form-label {
+            display: block;
+            font-size: .78rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--muted)
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: .93rem;
+            outline: none;
+            transition: border-color .2s
+        }
+
+        .form-input:focus {
+            border-color: var(--violet)
+        }
+
+        .form-select {
+            width: 100%;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 14px;
+            color: var(--text);
+            font-size: .93rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color .2s;
+            -webkit-appearance: none
+        }
+
+        .form-select:focus {
+            border-color: var(--violet)
+        }
+
+        .form-select option {
+            background: var(--surface)
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .03em
+        }
+
+        .tag-v {
+            background: rgba(155, 93, 229, .2);
+            color: var(--violet);
+            border: 1px solid rgba(155, 93, 229, .3)
+        }
+
+        .tag-c {
+            background: rgba(0, 212, 180, .15);
+            color: var(--cyan);
+            border: 1px solid rgba(0, 212, 180, .25)
+        }
+
+        .tag-g {
+            background: rgba(240, 192, 64, .15);
+            color: var(--gold);
+            border: 1px solid rgba(240, 192, 64, .25)
+        }
+
+        .tag-p {
+            background: rgba(232, 93, 155, .15);
+            color: var(--pink);
+            border: 1px solid rgba(232, 93, 155, .25)
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 18px 0
+        }
+
+        /* Profile card */
+        .profile-card {
+            background: var(--card);
+            border: 1px solid rgba(155, 93, 229, .3);
+            border-radius: 12px;
+            padding: 22px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--violet), var(--cyan), var(--pink))
+        }
+
+        .stat-label {
+            font-size: .68rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 3px
+        }
+
+        /* Character grid */
+        .char-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px
+        }
+
+        .char-thumb {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color .2s, background .2s
+        }
+
+        .char-thumb:hover {
+            border-color: var(--violet)
+        }
+
+        .char-thumb.sel {
+            border-color: var(--cyan);
+            background: rgba(0, 212, 180, .07)
+        }
+
+        .char-id {
+            font-family: 'Space Mono', monospace;
+            font-size: .6rem;
+            color: var(--muted);
+            letter-spacing: .15em;
+            margin-bottom: 6px
+        }
+
+        .char-name {
+            font-size: .85rem;
+            font-weight: 600
+        }
+
+        /* Overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(7, 8, 15, .92);
+            backdrop-filter: blur(28px) saturate(0.3);
+            -webkit-backdrop-filter: blur(28px) saturate(0.3);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px
+        }
+
+        .overlay.show {
+            display: flex
+        }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 11px 22px;
+            font-size: .88rem;
+            font-weight: 500;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity .3s;
+            pointer-events: none;
+            white-space: nowrap
+        }
+
+        #toast.show {
+            opacity: 1
+        }
+
+        /* Player list in results */
+        .player-row {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            margin-bottom: 12px;
+            transition: border-color .3s
+        }
+
+        .player-row.revealed {
+            border-color: rgba(155, 93, 229, .4)
+        }
+
+        /* Score bar */
+        .score-bar-wrap {
+            background: rgba(255, 255, 255, .06);
+            border-radius: 20px;
+            height: 8px;
+            margin-top: 6px;
+            overflow: hidden
+        }
+
+        .score-bar {
+            height: 100%;
+            border-radius: 20px;
+            transition: width .8s ease
+        }
+
+        /* Winner card */
+        .winner-badge {
+            background: linear-gradient(135deg, rgba(240, 192, 64, .15), rgba(155, 93, 229, .1));
+            border: 1.5px solid rgba(240, 192, 64, .4);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px
+        }
+
+        /* Timer */
+        .timer {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 5px 13px;
+            color: var(--gold)
+        }
+
+        /* Utility */
+        .flex {
+            display: flex
+        }
+
+        .flex-col {
+            flex-direction: column
+        }
+
+        .items-center {
+            align-items: center
+        }
+
+        .justify-between {
+            justify-content: space-between
+        }
+
+        .justify-center {
+            justify-content: center
+        }
+
+        .gap-2 {
+            gap: 8px
+        }
+
+        .gap-3 {
+            gap: 12px
+        }
+
+        .gap-4 {
+            gap: 16px
+        }
+
+        .flex-wrap {
+            flex-wrap: wrap
+        }
+
+        .mt-2 {
+            margin-top: 8px
+        }
+
+        .mt-3 {
+            margin-top: 12px
+        }
+
+        .mt-4 {
+            margin-top: 16px
+        }
+
+        .mt-6 {
+            margin-top: 24px
+        }
+
+        .mt-8 {
+            margin-top: 32px
+        }
+
+        .mb-2 {
+            margin-bottom: 8px
+        }
+
+        .mb-3 {
+            margin-bottom: 12px
+        }
+
+        .mb-4 {
+            margin-bottom: 16px
+        }
+
+        .mb-6 {
+            margin-bottom: 24px
+        }
+
+        .center {
+            text-align: center
+        }
+
+        .text-v {
+            color: var(--violet)
+        }
+
+        .text-c {
+            color: var(--cyan)
+        }
+
+        .text-g {
+            color: var(--gold)
+        }
+
+        .text-p {
+            color: var(--pink)
+        }
+
+        .text-gr {
+            color: var(--green)
+        }
+
+        .text-r {
+            color: var(--red)
+        }
+
+        .text-muted {
+            color: var(--muted)
+        }
+
+        .text-sm {
+            font-size: .85rem
+        }
+
+        .text-xs {
+            font-size: .72rem
+        }
+
+        .font-bold {
+            font-weight: 700
+        }
+
+        .font-mono {
+            font-family: 'Space Mono', monospace
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px
+        }
+
+        @media(max-width:560px) {
+            .grid-2 {
+                grid-template-columns: 1fr
+            }
+        }
+
+        /* ── Presentation Mode ── */
+        body.is-present #ans-card {
+            position: relative;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        body.is-present #ans-card::after {
+            content: "🔒\\A Đang che đáp án trên màn chiếu";
+            white-space: pre-wrap;
+            position: absolute;
+            inset: 0;
+            background: rgba(4, 5, 12, 0.65);
+            backdrop-filter: blur(14px) saturate(0.5);
+            -webkit-backdrop-filter: blur(14px) saturate(0.5);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: .9rem;
+            font-weight: 600;
+            color: var(--violet);
+            line-height: 1.8;
+            border-radius: var(--radius);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="toast"></div>
+
+    <div class="screen active" id="s-play">
+        <nav class="nav">
+            <div class="nav-inner">
+                <span class="logo" style="font-size:.95rem">PHI VỤ TUYỂN SINH</span>
+                <div class="flex gap-3 items-center">
+                    <span class="tag tag-c font-mono text-xs" id="nav-player-tag">Chế độ luyện tập</span>
+                </div>
+            </div>
+        </nav>
+        <div class="container mt-4">
+            <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div>
+                    <span class="label" style="margin-bottom:2px">Hồ sơ ứng viên</span>
+                    <h3 id="current-player-label" style="font-size:1.15rem">—</h3>
+                </div>
+            </div>
+
+            <!-- Profile -->
+            <div class="profile-card mb-4" id="profile-display"></div>
+
+            <!-- Answer form -->
+            <div class="card-glow" id="ans-card">
+                <span class="label">đưa ra dự đoán của bạn</span>
+                <div class="form-group mt-2">
+                    <label class="form-label">Ngành học phù hợp nhất</label>
+                    <select class="form-select" id="ans-major">
+                        <option value="">— Chọn ngành —</option>
+                    </select>
+                </div>
+                <div class="form-group mt-2">
+                    <label class="form-label">Trường đề xuất</label>
+                    <select class="form-select" id="ans-school">
+                        <option value="">— Chọn trường —</option>
+                    </select>
+                </div>
+
+                <div id="feedback-msg" class="mt-3 mb-2"
+                    style="text-align:center;font-weight:600;font-size:1rem;display:none;padding:12px;border-radius:8px">
+                </div>
+
+                <button class="btn btn-primary btn-full mt-2" style="padding:14px;font-size:1rem" id="btn-submit"
+                    onclick="submitAnswer()">Kiểm tra đáp án</button>
+                <button class="btn btn-gold btn-full mt-2" style="display:none;padding:14px;font-size:1rem"
+                    id="btn-next" onclick="nextApplicant()">▶ Qua ứng viên tiếp theo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+     DATA & LOGIC
+══════════════════════════════════════════════ -->
+    <script>
+
+        // ── Characters ──
+        const CHARACTERS = [
+            {
+                id: 1, code: 'UC-01', name: 'Linh Nhi',
+                age: 18, gender: 'Nữ',
+                slogan: '"Tôi muốn biến cảm xúc thành hình ảnh"',
+                strengths: ['Sáng tạo vượt trội', 'Tư duy hình ảnh tốt', 'Kiên nhẫn với chi tiết'],
+                hobbies: ['Vẽ tranh', 'Xem phim nghệ thuật', 'Thiết kế trang phục'],
+                personality: 'Nội tâm, nhạy cảm, hay quan sát mọi thứ xung quanh',
+                academic: 'Giỏi Ngữ văn, Mỹ thuật; Trung bình Toán, Lý',
+                weakness: 'Ngại thuyết trình, chưa giỏi tính toán',
+                note: 'Từng đoạt giải vẽ tranh cấp tỉnh',
+                // Scoring reference
+                correctMajors: ['Thiết kế đồ họa', 'Mỹ thuật công nghiệp', 'Thiết kế thời trang', 'Kiến trúc'],
+                correctSchools: ['ĐH Mỹ Thuật Việt Nam', 'ĐH Mỹ Thuật Công Nghiệp', 'ĐH Kiến Trúc Hà Nội', 'ĐH Kiến Trúc TP.HCM', 'ĐH FPT', 'ĐH Văn Lang'],
+                refMajor: 'Thiết kế đồ họa / Mỹ thuật công nghiệp',
+                refSchool: 'ĐH Mỹ Thuật Việt Nam / ĐH Mỹ Thuật Công Nghiệp'
+            },
+            {
+                id: 2, code: 'UC-02', name: 'Minh Khoa',
+                age: 18, gender: 'Nam',
+                slogan: '"Code là ngôn ngữ tôi nói tốt nhất"',
+                strengths: ['Tư duy logic xuất sắc', 'Tự học nhanh', 'Chú ý từng dòng lệnh'],
+                hobbies: ['Lập trình game', 'Giải toán', 'Xây dựng ứng dụng nhỏ'],
+                personality: 'Hướng nội, tập trung cao độ, thích giải quyết vấn đề',
+                academic: 'Giỏi Toán, Tin học; Trung bình Văn, Ngoại ngữ',
+                weakness: 'Kỹ năng giao tiếp nhóm còn hạn chế',
+                note: 'Đã có 2 ứng dụng cá nhân trên CH Play',
+                correctMajors: ['Công nghệ thông tin', 'Kỹ thuật phần mềm', 'Khoa học dữ liệu', 'An ninh mạng'],
+                correctSchools: ['ĐH Bách Khoa Hà Nội', 'ĐH Bách Khoa TP.HCM', 'ĐH FPT', 'ĐH Quốc Gia Hà Nội', 'ĐH Quốc Gia TP.HCM', 'ĐH Công nghệ – ĐHQG Hà Nội'],
+                refMajor: 'Công nghệ thông tin / Kỹ thuật phần mềm',
+                refSchool: 'ĐH Bách Khoa HN/HCM, ĐH FPT'
+            },
+            {
+                id: 3, code: 'UC-03', name: 'Thanh Hà',
+                age: 18, gender: 'Nữ',
+                slogan: '"Công lý phải được bảo vệ"',
+                strengths: ['Lập luận sắc bén', 'Trí nhớ tốt', 'Phân tích vấn đề logic'],
+                hobbies: ['Đọc sách pháp luật', 'Tranh biện', 'Theo dõi phiên tòa nổi tiếng'],
+                personality: 'Quyết đoán, nguyên tắc, thích tranh luận có lý',
+                academic: 'Giỏi Văn, GDCD, Sử; Khá Ngoại ngữ',
+                weakness: 'Đôi khi cứng nhắc, khó thỏa hiệp',
+                note: 'Á khoa khối C năm ngoái của trường',
+                correctMajors: ['Luật', 'Luật kinh tế', 'Quan hệ quốc tế', 'Ngữ văn'],
+                correctSchools: ['ĐH Luật Hà Nội', 'ĐH Luật TP.HCM', 'ĐH Quốc Gia Hà Nội', 'ĐH Khoa học Xã hội & Nhân văn'],
+                refMajor: 'Luật / Luật kinh tế',
+                refSchool: 'ĐH Luật Hà Nội / ĐH Luật TP.HCM'
+            },
+            {
+                id: 4, code: 'UC-04', name: 'Đức Anh',
+                age: 18, gender: 'Nam',
+                slogan: '"Khoa học là con đường dài nhất đến sự thật"',
+                strengths: ['Kiên nhẫn nghiên cứu', 'Tư duy phân tích', 'Yêu thích thí nghiệm'],
+                hobbies: ['Làm thí nghiệm tại nhà', 'Đọc tạp chí khoa học', 'Nuôi cây thuốc'],
+                personality: 'Cẩn thận, tỉ mỉ, ít nói nhưng suy nghĩ sâu',
+                academic: 'Giỏi Hóa, Sinh; Khá Lý và Toán',
+                weakness: 'Chưa có nhiều kỹ năng mềm, ngại hoạt động nhóm lớn',
+                note: 'Từng đoạt giải Hóa học cấp thành phố',
+                correctMajors: ['Hóa học', 'Sinh học', 'Kỹ thuật hóa học', 'Công nghệ sinh học', 'Dược học'],
+                correctSchools: ['ĐH Khoa học Tự nhiên TP.HCM', 'ĐH Quốc Gia Hà Nội', 'ĐH Dược Hà Nội', 'ĐH Y Dược TP.HCM', 'ĐH Bách Khoa Hà Nội'],
+                refMajor: 'Hóa học / Công nghệ sinh học',
+                refSchool: 'ĐH Khoa học Tự nhiên / ĐH Dược Hà Nội'
+            },
+            {
+                id: 5, code: 'UC-05', name: 'Bảo Ngọc',
+                age: 18, gender: 'Nữ',
+                slogan: '"Tôi muốn kể câu chuyện của thế giới"',
+                strengths: ['Biểu đạt ngôn ngữ tốt', 'Nhanh nhạy tin tức', 'Tự tin trước đám đông'],
+                hobbies: ['Làm podcast', 'Viết blog', 'Dẫn chương trình trường'],
+                personality: 'Năng động, hướng ngoại, tò mò về mọi sự kiện',
+                academic: 'Giỏi Văn, Ngoại ngữ; Trung bình Toán, Lý',
+                weakness: 'Thiếu kiên nhẫn với công việc lặp đi lặp lại',
+                note: 'MC chính của đài truyền thanh trường suốt 3 năm',
+                correctMajors: ['Báo chí', 'Truyền thông đa phương tiện', 'Quan hệ công chúng', 'Điện ảnh', 'Ngữ văn'],
+                correctSchools: ['Học viện Báo chí và Tuyên truyền', 'ĐH Khoa học Xã hội & Nhân văn', 'ĐH Quốc Gia TP.HCM', 'ĐH FPT'],
+                refMajor: 'Báo chí / Truyền thông đa phương tiện',
+                refSchool: 'Học viện Báo chí và Tuyên truyền'
+            },
+            {
+                id: 6, code: 'UC-06', name: 'Gia Huy',
+                age: 18, gender: 'Nam',
+                slogan: '"Tiền không tự sinh ra nhưng tôi biết cách tạo ra nó"',
+                strengths: ['Tư duy số liệu', 'Nhạy với xu hướng thị trường', 'Kỹ năng thương lượng tốt'],
+                hobbies: ['Theo dõi chứng khoán', 'Kinh doanh nhỏ online', 'Đọc sách startup'],
+                personality: 'Tham vọng, thực tế, định hướng mục tiêu rõ ràng',
+                academic: 'Giỏi Toán, Kinh tế; Khá Ngoại ngữ',
+                weakness: 'Đôi khi quá tập trung vào lợi ích cá nhân',
+                note: 'Shop online doanh thu 15 triệu/tháng',
+                correctMajors: ['Kinh tế', 'Tài chính ngân hàng', 'Quản trị kinh doanh', 'Kế toán kiểm toán'],
+                correctSchools: ['ĐH Kinh Tế Quốc Dân', 'ĐH Kinh Tế TP.HCM', 'ĐH Ngoại Thương', 'ĐH Quốc Gia TP.HCM'],
+                refMajor: 'Tài chính ngân hàng / Quản trị kinh doanh',
+                refSchool: 'ĐH Kinh Tế Quốc Dân / ĐH Ngoại Thương'
+            },
+            {
+                id: 7, code: 'UC-07', name: 'Thu Trang',
+                age: 18, gender: 'Nữ',
+                slogan: '"Tôi muốn chữa lành, không chỉ điều trị"',
+                strengths: ['Cảm thông cao', 'Chịu áp lực tốt', 'Học thuộc kiến thức y khoa nhanh'],
+                hobbies: ['Tình nguyện y tế', 'Đọc sách tâm lý', 'Chăm sóc người thân khi ốm'],
+                personality: 'Ấm áp, kiên nhẫn, có trách nhiệm cao',
+                academic: 'Giỏi Sinh, Hóa; Khá Toán',
+                weakness: 'Hay lo lắng quá mức, khó buông bỏ áp lực',
+                note: 'Điểm Sinh học 9.8 toàn cấp 3',
+                correctMajors: ['Y khoa', 'Dược học', 'Điều dưỡng', 'Răng hàm mặt', 'Tâm lý học giáo dục'],
+                correctSchools: ['ĐH Y Hà Nội', 'ĐH Y Dược TP.HCM', 'ĐH Dược Hà Nội', 'ĐH Y Dược Cần Thơ'],
+                refMajor: 'Y khoa / Dược học',
+                refSchool: 'ĐH Y Hà Nội / ĐH Y Dược TP.HCM'
+            },
+            {
+                id: 8, code: 'UC-08', name: 'Trọng Anh',
+                age: 18, gender: 'Nam',
+                slogan: '"Tôi nhìn vào không gian trống và thấy một công trình"',
+                strengths: ['Tư duy không gian 3D', 'Sáng tạo kết hợp kỹ thuật', 'Kiên nhẫn với bản vẽ'],
+                hobbies: ['Làm mô hình kiến trúc', 'Chơi game xây dựng', 'Quan sát công trình đô thị'],
+                personality: 'Thực tế nhưng có mơ mộng, thích thử thách kỹ thuật',
+                academic: 'Giỏi Toán, Vật lý, Mỹ thuật',
+                weakness: 'Chưa có nhiều trải nghiệm thực tế ngoài trường',
+                note: 'Đã thiết kế lại phòng học bằng SketchUp',
+                correctMajors: ['Kiến trúc', 'Xây dựng', 'Quy hoạch đô thị', 'Thiết kế đồ họa'],
+                correctSchools: ['ĐH Kiến Trúc Hà Nội', 'ĐH Kiến Trúc TP.HCM', 'ĐH Bách Khoa Hà Nội', 'ĐH Bách Khoa TP.HCM', 'ĐH Xây Dựng Hà Nội'],
+                refMajor: 'Kiến trúc / Quy hoạch đô thị',
+                refSchool: 'ĐH Kiến Trúc Hà Nội / ĐH Kiến Trúc TP.HCM'
+            },
+            {
+                id: 9, code: 'UC-09', name: 'Tùng Lâm',
+                age: 18, gender: 'Nam',
+                slogan: '"Con số luôn có câu chuyện riêng để kể"',
+                strengths: ['Nhạy bén với số liệu', 'Giao tiếp thuyết phục', 'Nhìn nhận xu hướng tốt'],
+                hobbies: ['Đọc báo tài chính', 'Chơi game kinh doanh', 'Bán hàng online'],
+                personality: 'Năng động, hướng ngoại, thực tế và tham vọng',
+                academic: 'Giỏi Toán, Ngoại ngữ; Khá Ngữ văn',
+                weakness: 'Hơi nóng vội, thường thiếu kiên nhẫn với các môn lý thuyết dài',
+                note: 'Từng mở shop quà tặng online tự quản lý doanh thu',
+                correctMajors: ['Quản trị kinh doanh', 'Tài chính ngân hàng', 'Kế toán kiểm toán', 'Kinh tế'],
+                correctSchools: ['ĐH Ngoại Thương', 'ĐH Kinh Tế Quốc Dân', 'ĐH Kinh Tế TP.HCM', 'ĐH RMIT Vietnam', 'ĐH Tôn Đức Thắng'],
+                refMajor: 'Quản trị kinh doanh / Tài chính ngân hàng',
+                refSchool: 'ĐH Ngoại Thương / ĐH Kinh Tế Quốc Dân'
+            },
+            {
+                id: 10, code: 'UC-10', name: 'Bảo Trâm',
+                age: 18, gender: 'Nữ',
+                slogan: '"Ngôn từ là phương tiện kết nối thế giới"',
+                strengths: ['Sử dụng ngôn từ linh hoạt', 'Sáng tạo nội dung', 'Thấu hiểu đa văn hóa'],
+                hobbies: ['Viết blog', 'Học ngoại ngữ', 'Làm video ngắn'],
+                personality: 'Cởi mở, thích giao lưu và khám phá điều mới',
+                academic: 'Giỏi Ngoại ngữ, Ngữ văn; Khá Lịch sử',
+                weakness: 'Không tự tin lắm khi làm việc với các môn tính toán phức tạp',
+                note: 'Sở hữu kênh TikTok về văn hóa có 50k người theo dõi',
+                correctMajors: ['Ngôn ngữ học', 'Truyền thông đa phương tiện', 'Quan hệ công chúng', 'Báo chí', 'Quan hệ quốc tế'],
+                correctSchools: ['Học viện Báo chí và Tuyên truyền', 'ĐH Ngoại Ngữ – ĐHQG Hà Nội', 'ĐH Khoa học Xã hội & Nhân văn'],
+                refMajor: 'Truyền thông đa phương tiện / Ngôn ngữ học',
+                refSchool: 'Học viện Báo chí và Tuyên truyền / ĐHKHXH&NV'
+            }
+        ];
+
+        const MAJORS = [
+            'An ninh mạng', 'Báo chí', 'Công nghệ sinh học', 'Công nghệ thông tin',
+            'Điện ảnh', 'Điều dưỡng', 'Dược học', 'Giáo dục tiểu học',
+            'Hóa học', 'Kế toán kiểm toán', 'Kiến trúc', 'Kinh tế',
+            'Kỹ thuật điện', 'Kỹ thuật hóa học', 'Kỹ thuật phần mềm', 'Kỹ thuật cơ khí',
+            'Khoa học dữ liệu', 'Lịch sử', 'Luật', 'Luật kinh tế',
+            'Mỹ thuật công nghiệp', 'Ngôn ngữ học', 'Ngữ văn', 'Quan hệ công chúng',
+            'Quan hệ quốc tế', 'Quản trị kinh doanh', 'Quy hoạch đô thị', 'Răng hàm mặt',
+            'Sinh học', 'Sư phạm Toán', 'Tài chính ngân hàng', 'Tâm lý học giáo dục',
+            'Thiết kế đồ họa', 'Thiết kế thời trang', 'Tự động hóa', 'Truyền thông đa phương tiện',
+            'Vật lý kỹ thuật', 'Xây dựng', 'Y khoa',
+        ];
+
+        const SCHOOLS = [
+            'ĐH Bách Khoa Hà Nội', 'ĐH Bách Khoa TP.HCM',
+            'ĐH Công nghệ – ĐHQG Hà Nội', 'ĐH Dược Hà Nội',
+            'ĐH FPT', 'ĐH Kiến Trúc Hà Nội', 'ĐH Kiến Trúc TP.HCM',
+            'ĐH Kinh Tế Quốc Dân', 'ĐH Kinh Tế TP.HCM',
+            'ĐH Khoa học Tự nhiên TP.HCM', 'ĐH Khoa học Xã hội & Nhân văn',
+            'ĐH Luật Hà Nội', 'ĐH Luật TP.HCM',
+            'ĐH Mỹ Thuật Công Nghiệp', 'ĐH Mỹ Thuật Việt Nam',
+            'ĐH Ngoại Thương', 'ĐH Ngoại Ngữ – ĐHQG Hà Nội',
+            'ĐH Quốc Gia Hà Nội', 'ĐH Quốc Gia TP.HCM',
+            'ĐH RMIT Vietnam', 'ĐH Sư Phạm Hà Nội', 'ĐH Sư Phạm TP.HCM',
+            'ĐH Tôn Đức Thắng', 'ĐH Văn Lang',
+            'ĐH Xây Dựng Hà Nội',
+            'ĐH Y Dược Cần Thơ', 'ĐH Y Dược TP.HCM', 'ĐH Y Hà Nội',
+            'Học viện Báo chí và Tuyên truyền',
+        ];
+
+        // ── Utils ──
+        function $(id) { return document.getElementById(id) }
+        function toast(msg, d = 2500) { const el = $('toast'); el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), d) }
+        function shuffle(a) { const r = [...a]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[r[i], r[j]] = [r[j], r[i]] } return r }
+
+        function populateSel(id, opts, ph) {
+            const s = $(id); s.innerHTML = `<option value="">${ph}</option>`;
+            opts.forEach(o => { const el = document.createElement('option'); el.value = o; el.textContent = o; s.appendChild(el) });
+        }
+
+        let currentCharacter = null;
+        let usedIds = [];
+
+        // ── Render Profile ──
+        function renderProfile() {
+            const c = currentCharacter;
+            if (!c) return;
+            $('current-player-label').textContent = c.name;
+            $('nav-player-tag').textContent = `Hồ sơ ${usedIds.length + 1} / ${CHARACTERS.length}`;
+
+            $('profile-display').innerHTML = `
+                <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+                    <div>
+                        <div style="font-size:1.1rem;font-weight:700;margin-bottom:2px">${c.name}</div>
+                        <div class="text-muted text-xs">${c.age} tuổi · ${c.gender} &nbsp;·&nbsp; Mã: <span style="font-family:'Space Mono',monospace;color:var(--violet)">${c.code}</span></div>
+                    </div>
+                </div>
+                <div style="border-left:3px solid var(--violet);padding-left:12px;margin:12px 0 20px 0;font-style:italic;color:var(--text);font-size:.92rem">
+                    ${c.slogan}
+                </div>
+                <div class="grid-2">
+                    <div style="background:rgba(255,255,255,.03);padding:14px;border-radius:10px">
+                        <p class="stat-label">Điểm mạnh & Sở thích</p>
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            ${c.strengths.map(s => `<span class="tag tag-c">${s}</span>`).join('')}
+                            ${c.hobbies.map(s => `<span class="tag tag-v">${s}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div style="background:rgba(255,255,255,.03);padding:14px;border-radius:10px">
+                        <p class="stat-label">Học lực & Tính cách</p>
+                        <ul style="padding-left:16px;margin:8px 0 0 0;font-size:.85rem;color:rgba(238,238,255,.8);line-height:1.6">
+                            <li><strong style="color:#fff">Học lực:</strong> ${c.academic}</li>
+                            <li><strong style="color:#fff">Tính cách:</strong> ${c.personality}</li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="background:var(--card);border:1px solid rgba(255,255,255,.05);padding:14px;border-radius:10px;margin-top:14px">
+                    <p class="stat-label">Điểm yếu / Ghi chú</p>
+                    <p class="text-sm mt-1" style="color:rgba(238,238,255,.6);line-height:1.5">${c.weakness}. ${c.note || ''}</p>
+                </div>
+            `;
+
+            // Reset UI states
+            $('feedback-msg').style.display = 'none';
+            $('btn-submit').style.display = 'block';
+            $('btn-next').style.display = 'none';
+            $('ans-major').value = '';
+            $('ans-school').value = '';
+            $('ans-major').disabled = false;
+            $('ans-school').disabled = false;
+        }
+
+        function checkAnswer(pm, ps, cm, cs) {
+            let majorCorrect = false;
+            let schoolCorrect = false;
+
+            if (cm.includes(pm.toLowerCase())) majorCorrect = true;
+            else if (cm.some(m => m.split(/[\/ ,]+/).some(kw => kw.length > 3 && pm.toLowerCase().includes(kw)))) majorCorrect = true;
+
+            if (cs.includes(ps.toLowerCase())) schoolCorrect = true;
+            else if (cs.some(m => m.split(/[\/ ,–]+/).some(kw => kw.length > 3 && ps.toLowerCase().includes(kw)))) schoolCorrect = true;
+
+            return { majorCorrect, schoolCorrect };
+        }
+
+        // ── Submit answer ──
+        function submitAnswer() {
+            const major = $('ans-major').value;
+            const school = $('ans-school').value;
+
+            if (!major || !school) { toast('⚠️ Hãy chọn đủ cả Ngành và Trường!'); return }
+
+            const cm = currentCharacter.correctMajors.map(s => s.toLowerCase());
+            const cs = currentCharacter.correctSchools.map(s => s.toLowerCase());
+
+            const result = checkAnswer(major, school, cm, cs);
+
+            const fb = $('feedback-msg');
+            fb.style.display = 'block';
+
+            if (result.majorCorrect && result.schoolCorrect) {
+                fb.style.background = 'rgba(0, 212, 180, 0.15)';
+                fb.style.color = 'var(--green)';
+                fb.innerHTML = '🎉 Chính xác hoàn toàn! Bạn đã phân tích hồ sơ rất chuẩn!';
+
+                $('ans-major').disabled = true;
+                $('ans-school').disabled = true;
+                $('btn-submit').style.display = 'none';
+                $('btn-next').style.display = 'block';
+
+                usedIds.push(currentCharacter.id);
+            } else if (result.majorCorrect) {
+                fb.style.background = 'rgba(240, 192, 64, 0.15)';
+                fb.style.color = 'var(--gold)';
+                fb.innerHTML = '✅ Ngành học đúng rồi, nhưng <strong>Trường đề xuất</strong> chưa phù hợp.<br/><span style="font-size:0.85em;font-weight:400;margin-top:6px;display:block">Gợi ý tham khảo: ' + currentCharacter.refSchool + '</span>';
+            } else if (result.schoolCorrect) {
+                fb.style.background = 'rgba(240, 192, 64, 0.15)';
+                fb.style.color = 'var(--gold)';
+                fb.innerHTML = '✅ Trường chọn đúng rồi, nhưng <strong>Ngành học</strong> chưa phù hợp.<br/><span style="font-size:0.85em;font-weight:400;margin-top:6px;display:block">Gợi ý tham khảo: ' + currentCharacter.refMajor + '</span>';
+            } else {
+                fb.style.background = 'rgba(255, 64, 129, 0.15)';
+                fb.style.color = 'var(--red)';
+                fb.innerHTML = '❌ Cả Ngành và Trường đều chưa chính xác. Hãy suy luận lại nhé!';
+            }
+        }
+
+        // ── Next applicant ──
+        function nextApplicant() {
+            const available = CHARACTERS.filter(c => !usedIds.includes(c.id));
+            if (available.length === 0) {
+                toast('🌟 Bạn đã giải đáp xong tất cả hồ sơ! Bắt đầu vòng mới...');
+                usedIds = []; // reset
+            }
+            const pool = available.length > 0 ? available : CHARACTERS;
+            currentCharacter = pool[Math.floor(Math.random() * pool.length)];
+
+            populateSel('ans-major', shuffle(MAJORS), '— Chọn ngành học —');
+            populateSel('ans-school', shuffle(SCHOOLS), '— Chọn trường đề xuất —');
+
+            renderProfile();
+        }
+
+        // ── Init ──
+        nextApplicant();
+    </script>
+</body>
+
+</html>
