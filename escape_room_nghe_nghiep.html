@@ -425,12 +425,95 @@
         #toast.show {
             transform: translateX(-50%) translateY(0);
         }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: var(--bg);
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 30px var(--primary-dim);
+            padding: 32px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 480px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.show .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-box.danger {
+            border-color: var(--danger);
+            box-shadow: 0 0 30px var(--danger-dim);
+        }
+
+        .modal-title {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .modal-box.danger .modal-title {
+            color: var(--danger);
+        }
+
+        .modal-desc {
+            color: var(--text-dim);
+            margin-bottom: 32px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
     </style>
 </head>
 
 <body>
 
     <div id="toast"></div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="custom-modal">
+        <div class="modal-box" id="modal-content-box">
+            <h2 class="modal-title" id="modal-title">XÁC NHẬN</h2>
+            <p class="modal-desc" id="modal-desc">Nội dung xác nhận</p>
+            <div class="modal-actions">
+                <button class="btn" style="border-color: var(--border); color: var(--text-dim);"
+                    onclick="closeModal()">HỦY BỎ</button>
+                <button class="btn" id="modal-confirm-btn">ĐỒNG Ý</button>
+            </div>
+        </div>
+    </div>
 
     <!-- HEADER (Visible only on menu) -->
     <header class="header" id="main-header">
@@ -759,18 +842,56 @@
             `}).join('');
         }
 
-        function abandonRoom() {
-            if (confirm("Bạn có chắc chắn muốn bỏ cuộc và quay lại sảnh không?")) {
-                showScreen('s-menu');
+        let modalConfirmCallback = null;
+
+        function showModal(title, msg, onConfirm, isDanger = false) {
+            $('modal-title').textContent = title;
+            $('modal-desc').textContent = msg;
+
+            const box = $('modal-content-box');
+            const confirmBtn = $('modal-confirm-btn');
+
+            if (isDanger) {
+                box.className = 'modal-box danger';
+                confirmBtn.className = 'btn btn-danger';
+            } else {
+                box.className = 'modal-box';
+                confirmBtn.className = 'btn';
             }
+
+            modalConfirmCallback = onConfirm;
+            $('custom-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            $('custom-modal').classList.remove('show');
+            modalConfirmCallback = null;
+        }
+
+        $('modal-confirm-btn').addEventListener('click', () => {
+            if (modalConfirmCallback) modalConfirmCallback();
+            closeModal();
+        });
+
+        function abandonRoom() {
+            showModal(
+                "XÁC NHẬN RÚT LUI",
+                "Bạn có chắc chắn muốn bỏ cuộc và quay lại sảnh không?",
+                () => { showScreen('s-menu'); }
+            );
         }
 
         function skipToFinalDoor() {
-            if (confirm("Chuyển ngay đến cửa thoát hiểm dự phòng? LƯU Ý: Bạn sẽ KHÔNG nhận được thêm manh mối nào nữa từ các phân khu sau!")) {
-                savedStage = currentStage;
-                currentStage = MISSIONS[currentRoom].stages.length;
-                renderStage();
-            }
+            showModal(
+                "KÍCH HOẠT VƯỢT RÀO",
+                "Chuyển ngay đến cửa thoát hiểm dự phòng? Bạn sẽ KHÔNG nhận được thêm manh mối nào nữa trừ khi giải đúng!",
+                () => {
+                    savedStage = currentStage;
+                    currentStage = MISSIONS[currentRoom].stages.length;
+                    renderStage();
+                },
+                true
+            );
         }
 
         // ── Game Logic ──
